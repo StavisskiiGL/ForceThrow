@@ -1,15 +1,14 @@
 import math
 
-field = 0
-Player1 = 0
-Player2 = 0
 
-
-def init():
-    global field, Player1, Player2
-    field = Field()
-    Player1 = Player(300, 300)
-    Player2 = Player(200, 200)
+def tick():
+    global Player1, Player2
+    collide(Player1, Player2)
+    Player1.newton()
+    Player2.newton()
+    Player1.move()
+    Player2.move()
+    field.evolve()
 
 
 class Player:
@@ -94,116 +93,122 @@ class Field:
 
 
 def collide(player1, player2):
-    m1 = player1.mass
-    m2 = player2.mass
-    v1x = player1.vx
-    v1y = player1.vy
-    v2x = player2.vx
-    v2y = player2.vy
-    vx_cm = (m1 * v1x + m2 * v2x) / (m1 + m2)
-    vy_cm = (m1 * v1y + m2 * v2y) / (m1 + m2)
-    v1x_cm = v1x - vx_cm
-    v1y_cm = v1y - vy_cm
-    v2x_cm = v2x - vx_cm
-    v2y_cm = v2y - vy_cm
-    v1_cm = v1x_cm ** 2 + v1y_cm ** 2
-    v2_cm = v2x_cm ** 2 + v2y_cm ** 2
-    px_cm = m1 * v1x_cm + m2 * v2x_cm
-    py_cm = m1 * v1y_cm + m2 * v2y_cm
-    k = (px_cm ** 2 + py_cm ** 2 + m1 ** 2 * v1_cm - v2_cm * m2 ** 2) / (2 * m1)
-    d = 4 * (px_cm ** 2 * v1_cm / (py_cm ** 2) + v1_cm - k**2 / (py_cm ** 2))
-    a = ((px_cm ** 2) / (py_cm ** 2) + 1)
-    b = -2 * k * px_cm / (py_cm ** 2)
-    result_v1x_1 = (-b + math.sqrt(d)) / (2 * a)
-    result_v1y_1 = k / py_cm - (px_cm / py_cm) * result_v1x_1
-    result_v1x_2 = (-b - math.sqrt(d)) / (2 * a)
-    result_v1y_2 = k / py_cm - (px_cm / py_cm) * result_v1x_2
-    if v2x_cm >= 0 and v2y_cm >= 0:
-        if result_v1x_1 - v1x_cm >= 0 and result_v1y_1 - v1y_cm >= 0:
-            true_v1x = result_v1x_1
-            true_v1y = result_v1y_1
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
-        elif result_v1x_2 - v1x_cm >= 0 and result_v1y_2 - v1y_cm >= 0:
-            true_v1x = result_v1x_2
-            true_v1y = result_v1y_2
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
+    if math.sqrt((player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2) <= player1.size + player2.size:
+        m1 = player1.mass
+        m2 = player2.mass
+        v1x = player1.vx
+        v1y = player1.vy
+        v2x = player2.vx
+        v2y = player2.vy
+        vx_cm = (m1 * v1x + m2 * v2x) / (m1 + m2)
+        vy_cm = (m1 * v1y + m2 * v2y) / (m1 + m2)
+        v1x_cm = v1x - vx_cm
+        v1y_cm = v1y - vy_cm
+        v2x_cm = v2x - vx_cm
+        v2y_cm = v2y - vy_cm
+        v1_cm = v1x_cm ** 2 + v1y_cm ** 2
+        v2_cm = v2x_cm ** 2 + v2y_cm ** 2
+        px_cm = m1 * v1x_cm + m2 * v2x_cm
+        py_cm = m1 * v1y_cm + m2 * v2y_cm
+        k = (px_cm ** 2 + py_cm ** 2 + m1 ** 2 * v1_cm - v2_cm * m2 ** 2) / (2 * m1)
+        d = 4 * (px_cm ** 2 * v1_cm / (py_cm ** 2) + v1_cm - k**2 / (py_cm ** 2))
+        a = ((px_cm ** 2) / (py_cm ** 2) + 1)
+        b = -2 * k * px_cm / (py_cm ** 2)
+        result_v1x_1 = (-b + math.sqrt(d)) / (2 * a)
+        result_v1y_1 = k / py_cm - (px_cm / py_cm) * result_v1x_1
+        result_v1x_2 = (-b - math.sqrt(d)) / (2 * a)
+        result_v1y_2 = k / py_cm - (px_cm / py_cm) * result_v1x_2
+        if v2x_cm >= 0 and v2y_cm >= 0:
+            if result_v1x_1 - v1x_cm >= 0 and result_v1y_1 - v1y_cm >= 0:
+                true_v1x = result_v1x_1
+                true_v1y = result_v1y_1
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
+            elif result_v1x_2 - v1x_cm >= 0 and result_v1y_2 - v1y_cm >= 0:
+                true_v1x = result_v1x_2
+                true_v1y = result_v1y_2
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
 
-    if v2x_cm >= 0 and v2y_cm <= 0:
-        if result_v1x_1 - v1x_cm >= 0 and result_v1y_1 - v1y_cm <= 0:
-            true_v1x = result_v1x_1
-            true_v1y = result_v1y_1
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
-        elif result_v1x_2 - v1x_cm >= 0 and result_v1y_2 - v1y_cm <= 0:
-            true_v1x = result_v1x_2
-            true_v1y = result_v1y_2
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
+        if v2x_cm >= 0 and v2y_cm <= 0:
+            if result_v1x_1 - v1x_cm >= 0 and result_v1y_1 - v1y_cm <= 0:
+                true_v1x = result_v1x_1
+                true_v1y = result_v1y_1
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
+            elif result_v1x_2 - v1x_cm >= 0 and result_v1y_2 - v1y_cm <= 0:
+                true_v1x = result_v1x_2
+                true_v1y = result_v1y_2
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
 
-    if v2x_cm <= 0 and v2y_cm >= 0:
-        if result_v1x_1 - v1x_cm <= 0 and result_v1y_1 - v1y_cm >= 0:
-            true_v1x = result_v1x_1
-            true_v1y = result_v1y_1
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
-        elif result_v1x_2 - v1x_cm <= 0 and result_v1y_2 - v1y_cm >= 0:
-            true_v1x = result_v1x_2
-            true_v1y = result_v1y_2
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
+        if v2x_cm <= 0 and v2y_cm >= 0:
+            if result_v1x_1 - v1x_cm <= 0 and result_v1y_1 - v1y_cm >= 0:
+                true_v1x = result_v1x_1
+                true_v1y = result_v1y_1
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
+            elif result_v1x_2 - v1x_cm <= 0 and result_v1y_2 - v1y_cm >= 0:
+                true_v1x = result_v1x_2
+                true_v1y = result_v1y_2
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
 
-    if v2x_cm <= 0 and v2y_cm <= 0:
-        if result_v1x_1 - v1x_cm <= 0 and result_v1y_1 - v1y_cm <= 0:
-            true_v1x = result_v1x_1
-            true_v1y = result_v1y_1
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
-        elif result_v1x_2 - v1x_cm <= 0 and result_v1y_2 - v1y_cm <= 0:
-            true_v1x = result_v1x_2
-            true_v1y = result_v1y_2
-            true_v2x = (px_cm - true_v1x * m1) / m2
-            true_v2y = (py_cm - m1 * true_v1y) / m2
-            player1.vx = true_v1x
-            player1.vy = true_v1y
-            player2.vx = true_v2x
-            player2.vy = true_v2y
-            return
+        if v2x_cm <= 0 and v2y_cm <= 0:
+            if result_v1x_1 - v1x_cm <= 0 and result_v1y_1 - v1y_cm <= 0:
+                true_v1x = result_v1x_1
+                true_v1y = result_v1y_1
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
+            elif result_v1x_2 - v1x_cm <= 0 and result_v1y_2 - v1y_cm <= 0:
+                true_v1x = result_v1x_2
+                true_v1y = result_v1y_2
+                true_v2x = (px_cm - true_v1x * m1) / m2
+                true_v2y = (py_cm - m1 * true_v1y) / m2
+                player1.vx = true_v1x
+                player1.vy = true_v1y
+                player2.vx = true_v2x
+                player2.vy = true_v2y
+                return
+
+
+field = Field()
+Player1 = Player(200, 200)
+Player2 = Player(300, 300)
 
 
 
