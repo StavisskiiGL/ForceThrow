@@ -1,16 +1,18 @@
 import pygame
 from model import *
 
+Player1 = 0
+Player2 = 0
 BLACK = [0, 0, 0]
+RED = [255, 0, 0]
+GREEN = [0, 255, 0]
+BLUE = [0, 0, 255]
 pygame.init()
 
-def game_start():
-    global Player1, Player2
-    Player1 = Player(1000, 400)
-    Player2 = Player(200, 400)
 
 def game_over():
    pass
+
 
 def handler(event):
     return event.type
@@ -18,12 +20,11 @@ def handler(event):
 
 finished = False
 
-FPS = 30
-screen = pygame.display.set_mode((1200, 900))
+FPS = 10
+screen = pygame.display.set_mode((1024, 1024))
 
 
 clock = pygame.time.Clock()
-game_start()
 pygame.display.update()
 
 while not finished:
@@ -32,15 +33,16 @@ while not finished:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             finished = True
-        elif event.type ==  pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN:
             #Обработка событий клавиатуры
             handler(event)
 
     #вызов обсчёта модели
-    #tick()
-
     screen.fill(BLACK)
-
+    Player1, Player2 = tick()
+    pygame.draw.circle(screen, RED, [Player1.x, 1024 - Player1.y], Player1.size)
+    pygame.draw.circle(screen, BLUE, [Player2.x, 1024 - Player2.y], Player2.size)
+    print(Player1.x, Player1.y)
     pygame.display.update()
 
 pygame.quit()

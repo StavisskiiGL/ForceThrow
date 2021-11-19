@@ -1,5 +1,6 @@
 import math
 
+
 def tick():
     global Player1, Player2
     collide(Player1, Player2)
@@ -7,7 +8,9 @@ def tick():
     Player2.newton()
     Player1.move()
     Player2.move()
+    print(field.metric[200][200])
     field.evolve()
+    return Player1, Player2
 
 
 class Player:
@@ -31,7 +34,7 @@ class Player:
         self.vy += self.ay
 
     def newton(self):
-        temp = Field.engagement(self, self.mass, self.x, self.y)
+        temp = field.engagement(self.mass, self.x, self.y)
         self.ax = temp[0]
         self.ay = temp[1]
 
@@ -53,31 +56,31 @@ class Field:
                     rad_k = (511 - y) / (511 - x)
                     force_k = abs(1 / rad_k)
                     if x < 511 and (y > 511):
-                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1))
-                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * force_k
+                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1)) * 10
+                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 10
                     if x > 511 and y > 511:
-                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1))
-                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * (-force_k)
+                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1)) * 10
+                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * (-force_k) * 10
                     if x < 511 and y < 511:
-                        self.metric[x][y][0] = -math.sqrt(1 / (force_k ** 2 + 1))
-                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * force_k
+                        self.metric[x][y][0] = -math.sqrt(1 / (force_k ** 2 + 1)) * 10
+                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 10
                     if x > 511 and (y < 511):
-                        self.metric[x][y][0] = -math.sqrt(1 / (force_k ** 2 + 1))
-                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * (-force_k)
+                        self.metric[x][y][0] = -math.sqrt(1 / (force_k ** 2 + 1)) * 10
+                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * (-force_k) * 10
                 if x == 511:
                     if y > 511:
-                        self.metric[x][y][0] = 1
+                        self.metric[x][y][0] = 10
                         self.metric[x][y][1] = 0
                     if y < 511:
-                        self.metric[x][y][0] = -1
+                        self.metric[x][y][0] = -10
                         self.metric[x][y][1] = 0
                 if y == 511:
                     if x > 511:
                         self.metric[x][y][0] = 0
-                        self.metric[x][y][1] = -1
+                        self.metric[x][y][1] = -10
                     if x < 511:
                         self.metric[x][y][0] = 0
-                        self.metric[x][y][1] = 1
+                        self.metric[x][y][1] = 10
 
     def evolve(self):
         for x in range(0, 1023):
@@ -88,6 +91,8 @@ class Field:
                     self.metric[x][y][1] = -temp * math.sin(0.01) + self.metric[x][y][1] * math.cos(0.01)
 
     def engagement(self, m, x, y):
+        x = round(x)
+        y = round(y)
         return [self.metric[x][y][0] / m, self.metric[x][y][1] / m]
 
 
