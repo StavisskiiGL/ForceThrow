@@ -1,6 +1,5 @@
 import math
 
-
 def tick():
     global Player1, Player2
     collide(Player1, Player2)
@@ -32,7 +31,7 @@ class Player:
         self.vy += self.ay
 
     def newton(self):
-        temp = Field.engagement(self.mass, self.x, self.y)
+        temp = Field.engagement(self, self.mass, self.x, self.y)
         self.ax = temp[0]
         self.ay = temp[1]
 
