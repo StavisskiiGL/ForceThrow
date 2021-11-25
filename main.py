@@ -56,18 +56,19 @@ field_drawer = Drawer(screen)
 while not finished:
     clock.tick(FPS)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-
     # вызов обсчёта модели
     p1x, p1y = init_operate_p1()
     p2x, p2y = init_operate_p2()
     controls = [p1x, p1y, p2x, p2y]
-    Player1, Player2, dt = tick(dt, controls)
+    Player1, Player2, spike, dt = tick(dt, controls)
     field_drawer.update(field, dt)
-    display_player(screen, RED, Player1)
-    display_player(screen, BLUE, Player2)
+    display_player(screen, Player1)
+    display_player(screen, Player2)
+    pygame.draw.polygon(screen, [255, 255, 255], [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
     pygame.display.update()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT or not Player1.live or not Player2.live:
+            finished = True
 
 pygame.quit()

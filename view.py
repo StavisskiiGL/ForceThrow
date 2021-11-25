@@ -27,5 +27,5 @@ class Drawer:
                                  (x + r * math.sin(angle), y - r * math.cos(angle)), 4)
 
 
-def display_player(screen, color, player):
-    pygame.draw.circle(screen, color, (player.x, player.y), player.size)
+def display_player(screen, player):
+    pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
