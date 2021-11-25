@@ -1,10 +1,10 @@
 import pygame
 import keyboard
 from model import *
+from view import *
 
 Player1 = 0
 Player2 = 0
-BLACK = [0, 0, 0]
 RED = [255, 0, 0]
 GREEN = [0, 255, 0]
 BLUE = [0, 0, 255]
@@ -40,7 +40,7 @@ def init_operate_p2():
 
 
 def game_over():
-   pass
+    pass
 
 
 finished = False
@@ -49,9 +49,9 @@ FPS = 30
 dt = 0
 screen = pygame.display.set_mode((1024, 1024))
 
-
 clock = pygame.time.Clock()
 pygame.display.update()
+field_drawer = Drawer(screen)
 
 while not finished:
     clock.tick(FPS)
@@ -60,14 +60,14 @@ while not finished:
         if event.type == pygame.QUIT:
             finished = True
 
-    #вызов обсчёта модели
-    screen.fill(BLACK)
+    # вызов обсчёта модели
     p1x, p1y = init_operate_p1()
     p2x, p2y = init_operate_p2()
     controls = [p1x, p1y, p2x, p2y]
     Player1, Player2, dt = tick(dt, controls)
-    pygame.draw.circle(screen, RED, [Player1.x, 1024 - Player1.y], Player1.size)
-    pygame.draw.circle(screen, BLUE, [Player2.x, 1024 - Player2.y], Player2.size)
+    field_drawer.update(field)
+    display_player(screen, RED, Player1)
+    display_player(screen, BLUE, Player2)
     pygame.display.update()
 
 pygame.quit()
