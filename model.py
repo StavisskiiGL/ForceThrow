@@ -60,28 +60,43 @@ class Field:
     """
     Тип данных, описывающий свойства и структуру игрового поля
     """
-    def __init__(self):
-        temp = []
-        self.metric = []
-        for i in range(0, 1024):
-            temp.append([0, 0])
-        for j in range(0, 1024):
-            self.metric.append(temp)
-        for x in range(0, 1024):
-            for y in range(0, 1024):
-                if y != 511 and x != 511:
-                    rad_k = (511 - y) / (511 - x)
-                    force_k = abs(1 / rad_k)
-                    if x < 511:
-                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1)) * 0.3 * (y - 511) / abs(y - 511)
-                        self.metric[x][y][1] = math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.3 * (x - 511) / abs(511 - x)
-                    else:
-                        self.metric[x][y][0] = math.sqrt(1 / (force_k ** 2 + 1)) * 0.3 * (y - 511) / abs(y - 511)
-                        self.metric[x][y][1] = -math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.3 * (x - 511) / abs(511 - x)
 
     def evolve(self, x, y, dt):
-        return(self.metric[x][y][0] * math.cos(0.01 * dt) + self.metric[x][y][1] * math.sin(0.01 * dt),
-               -self.metric[x][y][0] * math.sin(0.01) + self.metric[x][y][1] * math.cos(0.01))
+        if x == 511 and y > 511:
+            xproj = -0.3
+            yproj = 0
+        if x == 511 and y < 511:
+            xproj = 0.3
+            yproj = 0
+        if y == 511 and x < 511:
+            yproj = 0.3
+            xproj = 0
+        if y == 511 and x > 511:
+            yproj = -0.3
+            xproj = 0
+        if x < 511 and y < 511:
+            rad_k = (y - 511) / (511 - x)
+            force_k = (1 / rad_k)
+            xproj = math.sqrt(1 / (force_k ** 2 + 1)) * 0.4
+            yproj = math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.4
+        if x < 511 and y > 511:
+            rad_k = (y - 511) / (511 - x)
+            force_k = (1 / rad_k)
+            xproj = -math.sqrt(1 / (force_k ** 2 + 1)) * 0.4
+            yproj = -math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.4
+        if x > 511 and y < 511:
+            rad_k = (y - 511) / (511 - x)
+            force_k = (1 / rad_k)
+            xproj = math.sqrt(1 / (force_k ** 2 + 1)) * 0.4
+            yproj = math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.4
+        if x > 511 and y > 511:
+            rad_k = (y - 511) / (511 - x)
+            force_k = (1 / rad_k)
+            xproj = -math.sqrt(1 / (force_k ** 2 + 1)) * 0.4
+            yproj = -math.sqrt(1 / (force_k ** 2 + 1)) * force_k * 0.4
+
+        return(xproj * math.cos(-0.05 * dt) + yproj * math.sin(-0.05 * dt),
+               -xproj * math.sin(-0.05 * dt) + yproj * math.cos(-0.05 * dt))
 
     def engagement(self, m, x, y, dt):
         x = round(x)

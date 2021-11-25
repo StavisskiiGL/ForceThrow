@@ -15,9 +15,9 @@ def init_operate_p1():
     addacc_x = 0
     addacc_y = 0
     if keyboard.is_pressed('w'):
-        addacc_y += 0.5
-    if keyboard.is_pressed('s'):
         addacc_y -= 0.5
+    if keyboard.is_pressed('s'):
+        addacc_y += 0.5
     if keyboard.is_pressed('a'):
         addacc_x -= 0.5
     if keyboard.is_pressed('d'):
@@ -65,7 +65,7 @@ while not finished:
     p2x, p2y = init_operate_p2()
     controls = [p1x, p1y, p2x, p2y]
     Player1, Player2, dt = tick(dt, controls)
-    field_drawer.update(field)
+    field_drawer.update(field, dt)
     display_player(screen, RED, Player1)
     display_player(screen, BLUE, Player2)
     pygame.display.update()
