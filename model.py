@@ -5,7 +5,7 @@ FPS = 30
 
 
 def tick(dt, controls):
-    global Player1, Player2, spike
+    global Player1, Player2, spike, field
     dt += 1
     collide(Player1, Player2)
     Player1.wall()
@@ -20,7 +20,7 @@ def tick(dt, controls):
     Player2.wall()
     Player1.newton(dt, [controls[0], controls[1]])
     Player2.newton(dt, [controls[2], controls[3]])
-    return Player1, Player2, spike, dt
+    return Player1, Player2, spike, field, dt
 
 
 class Player:

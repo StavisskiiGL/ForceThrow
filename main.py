@@ -1,8 +1,7 @@
 import pygame
 import keyboard
-from model import *
+from model import tick
 from view import *
-
 Player1 = 0
 Player2 = 0
 RED = [255, 0, 0]
@@ -60,7 +59,7 @@ while not finished:
     p1x, p1y = init_operate_p1()
     p2x, p2y = init_operate_p2()
     controls = [p1x, p1y, p2x, p2y]
-    Player1, Player2, spike, dt = tick(dt, controls)
+    Player1, Player2, spike, field, dt = tick(dt, controls)
     field_drawer.update(field, dt)
     display_player(screen, Player1)
     display_player(screen, Player2)
