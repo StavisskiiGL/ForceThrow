@@ -1,6 +1,8 @@
 import math
 import random
 
+FPS = 30
+
 
 def tick(dt, controls):
     global Player1, Player2, spike
@@ -50,16 +52,16 @@ class Player:
 
     def wall(self):
         if self.x - self.size < 0:
-            self.vx = -self.vx
+            self.vx = -self.vx * 0.6
             self.x = self.size
         if self.size + self.x > 1024:
-            self.vx = -self.vx
+            self.vx = -self.vx * 0.6
             self.x = 1024 - self.size
         if self.y - self.size < 0:
-            self.vy = -self.vy
+            self.vy = -self.vy * 0.6
             self.y = self.size
         if self.size + self.y > 1024:
-            self.vy = -self.vy
+            self.vy = -self.vy * 0.6
             self.y = 1024 - self.size
 
     def death(self):
@@ -71,19 +73,19 @@ class Field:
     """
     Тип данных, описывающий свойства и структуру игрового поля
     """
-
     def evolve(self, x, y, dt):
+        global FPS
         if x == 511 and y > 511:
-            xproj = -0.3
+            xproj = -0.4
             yproj = 0
         if x == 511 and y < 511:
-            xproj = 0.3
+            xproj = 0.4
             yproj = 0
         if y == 511 and x < 511:
-            yproj = 0.3
+            yproj = 0.4
             xproj = 0
         if y == 511 and x > 511:
-            yproj = -0.3
+            yproj = -0.4
             xproj = 0
         if x < 511 and y < 511:
             rad_k = (y - 511) / (511 - x)
@@ -121,30 +123,35 @@ class Spike:
     """
     def __init__(self):
         self.x1 = random.randint(300, 700)
-        self.a = 20
+        self.a = 40
         self.x3 = self.x1 + self.a
         self.x2 = self.x1 + self.a / 2
         self.y1 = random.randint(300, 700)
         self.y3 = self.y1
         self.y2 = self.y1 - math.sin(math.pi / 3) * self.a
-        self.b12 = (self.y2 + self.y1 - math.sqrt(3) * (self.x1 + self.x2)) / 2
-        self.b23 = (self.y3 + self.y2 + math.sqrt(3) * (self.x2 + self.x3)) / 2
+        self.b12 = (self.y2 + self.y1 + math.sqrt(3) * (self.x1 + self.x2)) / 2
+        self.b23 = (self.y3 + self.y2 - math.sqrt(3) * (self.x2 + self.x3)) / 2
 
     def penetration(self, player):
         d1 = math.sqrt((player.x - self.x1) ** 2 + (player.y - self.y1) ** 2)
         d2 = math.sqrt((player.x - self.x2) ** 2 + (player.y - self.y2) ** 2)
         d3 = math.sqrt((player.x - self.x3) ** 2 + (player.y - self.y3) ** 2)
-        cos_psi1 = (d2 ** 2 - self.a ** 2 - d1 ** 2) / (-2 * d1 * self.a)
-        cos_psi2 = (d3 ** 2 - self.a ** 2 - d2 ** 2) / (-2 * d2 * self.a)
-        cos_psi3 = (d1 ** 2 - self.a ** 2 - d3 ** 2) / (-2 * d3 * self.a)
+        cos_psi1_1 = (d2 ** 2 - self.a ** 2 - d1 ** 2) / (-2 * d1 * self.a)
+        cos_psi2_1 = (d1 ** 2 - self.a ** 2 - d2 ** 2) / (-2 * d2 * self.a)
+        cos_psi2_2 = (d3 ** 2 - self.a ** 2 - d2 ** 2) / (-2 * d2 * self.a)
+        cos_psi3_2 = (d2 ** 2 - self.a ** 2 - d3 ** 3) / (-2 * d3 * self.a)
+        cos_psi3_3 = (d1 ** 2 - self.a ** 2 - d3 ** 2) / (-2 * d3 * self.a)
+        cos_psi1_3 = (d3 ** 3 - self.a ** 2 - d1 ** 2) / (-2 * d1 * self.a)
         Min_d = min(d1, d2, d3)
         if d1 <= player.size or d2 <= player.size or d3 <= player.size:
             return True
-        if cos_psi1 >= 0 and d1 * math.sqrt(1 - cos_psi1 ** 2) <= player.size and d1 == Min_d:
+        if self.y1 >= player.y >= player.x * math.sqrt(3) + self.b23 and d1 * math.sqrt(1 - cos_psi1_1 ** 2) <= player.size:
             return True
-        if cos_psi2 >= 0 and d2 * math.sqrt(1 - cos_psi2 ** 2) <= player.size and d2 == Min_d:
+        if self.y1 >= player.y >= -player.x * math.sqrt(3) + self.b12 and d2 * math.sqrt(1 - cos_psi2_2 ** 2) <= player.size:
             return True
-        if cos_psi3 >= 0 and d3 * math.sqrt(1 - cos_psi3 ** 2) <= player.size and d3 == Min_d:
+        if self.y1 <= player.y >= player.x * math.sqrt(3) + self.b23 and player.y >= -player.x * math.sqrt(3) + self.b12 and d3 * math.sqrt(1 - cos_psi3_3 ** 2) <= player.size:
+            return True
+        if self.y1 >= player.y >= player.x * math.sqrt(3) + self.b23 and player.y >= -player.x * math.sqrt(3) + self.b12:
             return True
         return False
 

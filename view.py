@@ -2,6 +2,7 @@ import pygame
 import pygame.draw
 import math
 
+FPS = 30
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 

@@ -15,13 +15,13 @@ def init_operate_p1():
     addacc_x = 0
     addacc_y = 0
     if keyboard.is_pressed('w'):
-        addacc_y -= 0.5
+        addacc_y -= 0.5 * 30 / FPS
     if keyboard.is_pressed('s'):
-        addacc_y += 0.5
+        addacc_y += 0.5 * 30 / FPS
     if keyboard.is_pressed('a'):
-        addacc_x -= 0.5
+        addacc_x -= 0.5 * 30 / FPS
     if keyboard.is_pressed('d'):
-        addacc_x += 0.5
+        addacc_x += 0.5 * 30 / FPS
     return addacc_x, addacc_y
 
 
@@ -29,9 +29,9 @@ def init_operate_p2():
     addacc_x = 0
     addacc_y = 0
     if keyboard.is_pressed('up'):
-        addacc_y += 0.5
-    if keyboard.is_pressed('down'):
         addacc_y -= 0.5
+    if keyboard.is_pressed('down'):
+        addacc_y += 0.5
     if keyboard.is_pressed('left'):
         addacc_x -= 0.5
     if keyboard.is_pressed('right'):
@@ -68,7 +68,9 @@ while not finished:
     pygame.display.update()
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or not Player1.live or not Player2.live:
+        if event.type == pygame.QUIT:
             finished = True
 
+    if not Player1.live or not Player2.live:
+        finished = True
 pygame.quit()
