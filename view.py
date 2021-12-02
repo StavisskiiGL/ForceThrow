@@ -5,6 +5,7 @@ import math
 FPS = 30
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+GREEN = (124,252, 0)
 
 
 class Drawer:
@@ -30,3 +31,10 @@ class Drawer:
 
 def display_player(screen, player):
     pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
+
+def image_button(screen, coords1, coords2, coords3, coords4, name):
+    pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
+    pygame.draw.polygon(screen, GREEN, [coords1, coords2, coords3, coords4])
+    text_surf = pygame.font.Font(None, 60)
+    button_text = text_surf.render(name, True, (0, 0, 0))
+    screen.blit(button_text, coords1)

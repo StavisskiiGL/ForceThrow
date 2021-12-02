@@ -1,8 +1,17 @@
 import math
 import random
+import pygame
 
 FPS = 30
+WHITE = (255, 255, 255)
+GREEN = (124,252, 0)
 
+def start():
+    global field, spike, Player1, Player2
+    field = Field()
+    spike = Spike()
+    Player1 = Player(400, 800)
+    Player2 = Player(800, 800)
 
 def tick(dt, controls):
     global Player1, Player2, spike, field
@@ -21,6 +30,20 @@ def tick(dt, controls):
     Player1.newton(dt, [controls[0], controls[1]])
     Player2.newton(dt, [controls[2], controls[3]])
     return Player1, Player2, spike, field, dt
+
+class Button:
+    def __init__(self, j, name):
+        self.coords1 = (400, j)
+        self.coords2 = (650, j)
+        self.coords3 = (650, j + 100)
+        self.coords4 = (400, j + 100)
+        self.text = name
+
+    def pressed(self, mouse_coords, coords1, coords3):
+        if coords1[0] < mouse_coords[0] < coords3[0] and coords1[1] < mouse_coords[1] < coords3[1]:
+            return True
+        else:
+            return False
 
 
 class Player:
@@ -180,7 +203,3 @@ def collide(player1, player2):
         player2.vy = v2y_true
 
 
-field = Field()
-spike = Spike()
-Player1 = Player(400, 800)
-Player2 = Player(800, 800)
