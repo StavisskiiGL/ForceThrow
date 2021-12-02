@@ -137,10 +137,14 @@ while not finished:
         p1x, p1y = init_operate_p1()
         p2x, p2y = init_operate_p2()
         controls = [p1x, p1y, p2x, p2y]
-        Player1, Player2, spike, field, dt = tick(dt, controls)
+        Player1, Player2, spike, field, dt, objects = tick(dt, controls)
         field_drawer.update(field, dt)
         display_player(screen, Player1)
         display_player(screen, Player2)
+        if type(objects[0]) != type(1):
+            print(objects[0])
+            if not objects[0].used:
+                pygame.draw.polygon(screen, objects[0].color, objects[0].drawdata)
         pygame.draw.polygon(screen, [255, 255, 255], [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
         pygame.display.update()
         if not Player1.live or not Player2.live:

@@ -3,6 +3,10 @@ import random
 import pygame
 
 FPS = 30
+star = False
+objects = [0, 0, 0]
+dtstar = 0
+
 
 def start():
     global field, spike, Player1, Player2
@@ -11,23 +15,43 @@ def start():
     Player1 = Player(400, 800)
     Player2 = Player(800, 800)
 
+
 def tick(dt, controls):
-    global Player1, Player2, spike, field
+    global Player1, Player2, spike, field, objects, star, dtstar
+    if dtstar == FPS * 20:
+        objects[0] = StarPowerUp()
+        star = True
+        dtstar = -FPS * 10
     dt += 1
+    dtstar += 1
     collide(Player1, Player2)
     Player1.wall()
     Player2.wall()
+    collide(Player1, Player2)
     Player1.death()
     Player2.death()
+    collide(Player1, Player2)
     Player1.move()
     Player2.move()
+    collide(Player1, Player2)
+    if star:
+        objects[0].pickup(Player1, dt)
+        objects[0].pickup(Player2, dt)
+    if Player1.invincible:
+        Player1.star(dt)
+    if Player2.invincible:
+        Player2.star(dt)
     Player1.death()
     Player2.death()
+    collide(Player1, Player2)
     Player1.wall()
     Player2.wall()
+    collide(Player1, Player2)
     Player1.newton(dt, [controls[0], controls[1]])
     Player2.newton(dt, [controls[2], controls[3]])
-    return Player1, Player2, spike, field, dt
+    collide(Player1, Player2)
+    return Player1, Player2, spike, field, dt, objects
+
 
 class Button:
     def __init__(self, j, name):
@@ -44,14 +68,54 @@ class Button:
             return False
 
 
+class StarPowerUp:
+    def __init__(self):
+        self.used = False
+        self.xc = random.randint(200, 800)
+        self.yc = random.randint(200, 800)
+        self.r = 30
+        self.a = math.sqrt(2 * self.r**2 - 2 * self.r ** 2 * math.cos(72/180 * math.pi)) * 1/2 / math.sin(27 / 180 * math.pi)
+        self.d = math.sqrt(self.a ** 2 + self.r ** 2 - 2 * self.r * self.a * math.cos(18 / 180 * math.pi))
+        self.x1 = self.xc
+        self.y1 = self.yc - self.r
+        self.x2 = self.xc + self.d * math.sin(36 / 180 * math.pi)
+        self.y2 = self.yc - self.d * math.cos(36 / 180 * math.pi)
+        self.x3 = self.xc + self.r * math.sin(72 / 180 * math.pi)
+        self.y3 = self.yc - self.r * math.cos(72 / 180 * math.pi)
+        self.x4 = self.xc + self.d * math.sin(72 / 180 * math.pi)
+        self.y4 = self.yc + self.d * math.cos(72 / 180 * math.pi)
+        self.x5 = self.xc + self.r * math.sin(36 / 180 * math.pi)
+        self.y5 = self.yc + self.r * math.cos(36 / 180 * math.pi)
+        self.x6 = self.xc
+        self.y6 = self.yc + self.d
+        self.x7 = self.xc - self.r * math.sin(36 / 180 * math.pi)
+        self.y7 = self.yc + self.r * math.cos(36 / 180 * math.pi)
+        self.x8 = self.xc - self.d * math.sin(72 / 180 * math.pi)
+        self.y8 = self.yc + self.d * math.cos(72 / 180 * math.pi)
+        self.x9 = self.xc - self.r * math.sin(72 / 180 * math.pi)
+        self.y9 = self.yc - self.r * math.cos(72 / 180 * math.pi)
+        self.x10 = self.xc - self.d * math.sin(36 / 180 * math.pi)
+        self.y10 = self.yc - self.d * math.cos(36 / 180 * math.pi)
+        self.drawdata = [[self.x2, self.y2], [self.x3, self.y3], [self.x4, self.y4], [self.x5, self.y5], [self.x6, self.y6],
+                         [self.x7, self.y7], [self.x8, self.y8], [self.x9, self.y9], [self.x10, self.y10], [self.x1, self.y1]]
+        self.color = [255, 255, 39]
+
+    def pickup(self, player, dt):
+        if math.sqrt((player.x - self.xc) ** 2 + (player.y - self.yc) ** 2) <= player.size + self.r and not self.used:
+            player.star(dt)
+            self.used = True
+
+
 class Player:
     """
     Тип данных, описывающий одного из игроков
     """
     def __init__(self, xcord, ycord):
+        self.invincible = False
         self.live = True
         self.mass = 1
         self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
+        self.tempcolor = 0
         self.size = 20
         self.x = xcord
         self.y = ycord
@@ -59,6 +123,8 @@ class Player:
         self.vy = 0
         self.ax = 0
         self.ay = 0
+        self.t = 0
+        self.t0 = 0
 
     def move(self):
         self.x += self.vx
@@ -88,6 +154,27 @@ class Player:
     def death(self):
         global spike
         self.live = not spike.penetration(self)
+
+    def stardeath(self):
+        self.live = False
+
+    def star(self, dt=1):
+        global star
+        if not self.invincible:
+            self.tempcolor = self.color
+            self.t0 = dt
+        self.invincible = True
+        if not self.t:
+            self.t += 10
+            return
+        if dt % self.t:
+            self.color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
+            self.t += 10
+        if dt - self.t0 >= FPS * 10:
+            self.invincible = False
+            self.color = self.tempcolor
+            objects[0] = 0
+            star = False
 
 
 class Field:
@@ -144,7 +231,7 @@ class Spike:
     """
     def __init__(self):
         self.x1 = random.randint(300, 700)
-        self.a = 40
+        self.a = 60
         self.x3 = self.x1 + self.a
         self.x2 = self.x1 + self.a / 2
         self.y1 = random.randint(300, 700)
@@ -154,16 +241,14 @@ class Spike:
         self.b23 = (self.y3 + self.y2 - math.sqrt(3) * (self.x2 + self.x3)) / 2
 
     def penetration(self, player):
+        if player.invincible:
+            return False
         d1 = math.sqrt((player.x - self.x1) ** 2 + (player.y - self.y1) ** 2)
         d2 = math.sqrt((player.x - self.x2) ** 2 + (player.y - self.y2) ** 2)
         d3 = math.sqrt((player.x - self.x3) ** 2 + (player.y - self.y3) ** 2)
         cos_psi1_1 = (d2 ** 2 - self.a ** 2 - d1 ** 2) / (-2 * d1 * self.a)
-        cos_psi2_1 = (d1 ** 2 - self.a ** 2 - d2 ** 2) / (-2 * d2 * self.a)
         cos_psi2_2 = (d3 ** 2 - self.a ** 2 - d2 ** 2) / (-2 * d2 * self.a)
-        cos_psi3_2 = (d2 ** 2 - self.a ** 2 - d3 ** 3) / (-2 * d3 * self.a)
         cos_psi3_3 = (d1 ** 2 - self.a ** 2 - d3 ** 2) / (-2 * d3 * self.a)
-        cos_psi1_3 = (d3 ** 3 - self.a ** 2 - d1 ** 2) / (-2 * d1 * self.a)
-        Min_d = min(d1, d2, d3)
         if d1 <= player.size or d2 <= player.size or d3 <= player.size:
             return True
         if self.y1 >= player.y >= player.x * math.sqrt(3) + self.b23 and d1 * math.sqrt(1 - cos_psi1_1 ** 2) <= player.size:
@@ -179,6 +264,12 @@ class Spike:
 
 def collide(player1, player2):
     if math.sqrt((player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2) <= player1.size + player2.size:
+        if player1.invincible:
+            player2.stardeath()
+            return
+        if player2.invincible:
+            player1.stardeath()
+            return
         m1 = player1.mass
         m2 = player2.mass
         v1x = player1.vx

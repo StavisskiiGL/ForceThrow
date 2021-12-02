@@ -32,6 +32,7 @@ class Drawer:
 def display_player(screen, player):
     pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
 
+
 def image_button(screen, coords1, coords2, coords3, coords4, name):
     pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
     pygame.draw.polygon(screen, GREEN, [coords1, coords2, coords3, coords4])
