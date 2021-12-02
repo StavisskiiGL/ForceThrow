@@ -3,8 +3,6 @@ import random
 import pygame
 
 FPS = 30
-WHITE = (255, 255, 255)
-GREEN = (124,252, 0)
 
 def start():
     global field, spike, Player1, Player2
