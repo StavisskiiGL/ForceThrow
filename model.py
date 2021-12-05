@@ -1,15 +1,22 @@
 import math
 import random
 import pygame
+import keyboard
 
+screen = pygame.display.set_mode((1024, 1024))
 FPS = 30
 star = False
 objects = [0, 0, 0]
 dtstar = 0
+COLOR_INACTIVE = pygame.Color('lightskyblue3')
+COLOR_ACTIVE = pygame.Color('dodgerblue2')
+pygame.init()
+FONT = pygame.font.Font(None, 32)
 
 
 def start():
-    global field, spike, Player1, Player2
+    global field, spike, Player1, Player2, start
+    start = True
     field = Field()
     spike = Spike()
     Player1 = Player(400, 800)
@@ -51,6 +58,60 @@ def tick(dt, controls):
     Player2.newton(dt, [controls[2], controls[3]])
     collide(Player1, Player2)
     return Player1, Player2, spike, field, dt, objects
+
+
+class InputBox:
+    def __init__(self, x, y, w, h, text=''):
+        self.FONT = pygame.font.Font(None, 50)
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = COLOR_INACTIVE
+        self.text = text
+        self.txt_surface = FONT.render(text, True, self.color)
+        self.active = False
+
+    def handle_event(self, event, Player_number):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if self.rect.collidepoint(event.pos):
+                # Toggle the active variable.
+                self.active = not self.active
+            else:
+                self.active = False
+            # Change the current color of the input box.
+            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    if Player_number == 1:
+                        Player1.get_a_name(self.text)
+                        print(Player2.name)
+                    elif Player_number == 2:
+                        Player2.get_a_name(self.text)
+                        print(Player2.name)
+                    print(Player1.name)
+                    print(Player2.name)
+
+                    self.text = ''
+                    screen.fill((0, 0, 0))
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                # Re-render the text.
+                self.txt_surface = FONT.render(self.text, True, self.color)
+
+
+    def update(self):
+        # Resize the box if the text is too long.
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self):
+        pygame.draw.polygon(screen, (0, 0, 0), [(400, 400), (1030, 400), (1030, 500), (400, 500)])
+        # Blit the text.
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        # Blit the rect.
+        pygame.draw.rect(screen, self.color, self.rect, 2)
 
 
 class Button:
@@ -125,6 +186,10 @@ class Player:
         self.ay = 0
         self.t = 0
         self.t0 = 0
+        self.name = 'Someone'
+
+    def get_a_name(self, name):
+        self.name = name
 
     def move(self):
         self.x += self.vx

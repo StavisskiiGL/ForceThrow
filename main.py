@@ -1,6 +1,6 @@
 import pygame
 import keyboard
-from model import tick, Button, start
+from model import tick, Button, start, InputBox, screen
 from view import *
 Player1 = 0
 Player2 = 0
@@ -8,7 +8,9 @@ BLACK = [0, 0, 0]
 RED = [255, 0, 0]
 GREEN = [0, 255, 0]
 BLUE = [0, 0, 255]
+
 pygame.init()
+
 
 
 def init_operate_p1():
@@ -40,9 +42,9 @@ def init_operate_p2():
 
 
 def controller():
-    global finished, stop, play, pause, game_over
+    global finished, stop, play, pause, game_over, start, not_started
     if stop:
-        button_load = Button(300, 'Load Game')
+        button_load = Button(300, 'Сontinue')
         button_play = Button(400, 'New Game')
         button_options = Button(500, 'Options')
         button_exit = Button(600, 'Exit')
@@ -56,23 +58,62 @@ def controller():
             elif event.type == pygame.MOUSEBUTTONUP:
                 mouse_coords = pygame.mouse.get_pos()
                 if button_load.pressed(mouse_coords, button_load.coords1, button_load.coords3):
-                    stop = False
-                    play = True
+                    if not_started == True:
+                        pass
+                    else:
+                        stop = False
+                        play = True
                 if button_play.pressed(mouse_coords, button_play.coords1, button_play.coords3):
                     stop = False
                     play = True
+                    not_started = True
+                    screen.fill(BLACK)
                     start()
                 if button_exit.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                     finished = True
                 if button_options.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                     pass
     if play:
+        if not_started:
+            input_box1 = InputBox(400, 400, 100, 50)
+            input = 1
+            while input != 3:
+                clock = pygame.time.Clock()
+                if input == 1:
+                    input_surf = pygame.font.Font(None, 60)
+                    input_text = input_surf.render('Enter the name of Player 1', True, RED)
+                    screen.blit(input_text, (275, 300))
+                    pygame.display.update()
+                elif input == 2:
+                    input_surf = pygame.font.Font(None, 60)
+                    input_text = input_surf.render('Enter the name of Player 2', True, RED)
+                    screen.blit(input_text, (275, 300))
+                    pygame.display.update()
+                for event in pygame.event.get():
+                    input_box1.handle_event(event, input)
+                    if event.type == pygame.QUIT:
+                        input = 3
+                        finished = True
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_RETURN:
+                            input += 1
+
+                input_box1.update()
+                input_box1.draw()
+
+                pygame.display.flip()
+                clock.tick(30)
+            pygame.display.update()
+            not_started = False
+
+
+        elif keyboard.is_pressed('Esc'):
+            play = False
+            pause = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
-        if keyboard.is_pressed('Esc'):
-            play = False
-            pause = True
+
 
     if pause:
         button_return = Button(400, 'Main Menu')
@@ -104,8 +145,12 @@ def controller():
         over_text = over_surf.render('Game Over', True, RED)
         screen.blit(over_text, (250, 400))
         result_surf = pygame.font.Font(None, 125)
-        result_text = result_surf.render('Someone has won!', True, BLUE)
-        screen.blit(result_text, (175, 550))
+        if not Player1.live:
+            result_text = result_surf.render(Player2.name + ' ' + 'has won!', True, BLUE)
+        elif not Player2.live:
+            result_text = result_surf.render(Player1.name + ' ' + 'has won!', True, BLUE)
+        screen.blit(result_text, (225, 550))
+        not_started = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
@@ -118,22 +163,22 @@ def controller():
         start()
 
 finished = play = pause = game_over = False
-stop = True
+stop = not_started = True
 
 FPS = 30
 dt = 0
-screen = pygame.display.set_mode((1024, 1024))
+
+
 
 clock = pygame.time.Clock()
 pygame.display.update()
 field_drawer = Drawer(screen)
-start()
 
 while not finished:
     clock.tick(FPS)
     controller()
 
-    if play:
+    if play and not not_started:
         p1x, p1y = init_operate_p1()
         p2x, p2y = init_operate_p2()
         controls = [p1x, p1y, p2x, p2y]
