@@ -15,13 +15,20 @@ FONT = pygame.font.Font(None, 32)
 
 
 def start():
-    global field, spike, Player1, Player2, start
-    start = True
+    global field, spike, Player1, Player2
     field = Field()
     spike = Spike()
     Player1 = Player(400, 800)
     Player2 = Player(800, 800)
+    Player1.wins = 0
+    Player2.wins = 0
 
+def restart():
+    global field, spike, Player1, Player2
+    field = Field()
+    spike = Spike()
+    Player1.restart_parameters(400, 800)
+    Player2.restart_parameters(800, 800)
 
 def tick(dt, controls):
     global Player1, Player2, spike, field, objects, star, dtstar
@@ -61,7 +68,9 @@ def tick(dt, controls):
 
 
 class InputBox:
+    "Класс окна ввода игроком текста"
     def __init__(self, x, y, w, h, text=''):
+        "Создание основных параметров окна"
         self.FONT = pygame.font.Font(None, 50)
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -71,50 +80,50 @@ class InputBox:
 
     def handle_event(self, event, Player_number):
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # If the user clicked on the input_box rect.
+            "Если игрок щёлкнул по окну"
             if self.rect.collidepoint(event.pos):
-                # Toggle the active variable.
+                "Переключает активную переменную"
                 self.active = not self.active
             else:
                 self.active = False
-            # Change the current color of the input box.
+            "Меняет цвет в зависимости от активности окна"
             self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
         if event.type == pygame.KEYDOWN:
             if self.active:
                 if event.key == pygame.K_RETURN:
+                    "Присвоение игрокам введённых имён"
                     if Player_number == 1:
                         Player1.get_a_name(self.text)
-                        print(Player2.name)
                     elif Player_number == 2:
                         Player2.get_a_name(self.text)
-                        print(Player2.name)
-                    print(Player1.name)
-                    print(Player2.name)
 
                     self.text = ''
                     screen.fill((0, 0, 0))
+
                 elif event.key == pygame.K_BACKSPACE:
+                    "Убирает напечатанные символы при нажатии соответствующей клавиши"
                     self.text = self.text[:-1]
                 else:
                     self.text += event.unicode
-                # Re-render the text.
+                "Обновление текста"
                 self.txt_surface = FONT.render(self.text, True, self.color)
 
 
     def update(self):
-        # Resize the box if the text is too long.
+        "Удлиняет окно если текст слишком длинный"
         width = max(200, self.txt_surface.get_width()+10)
         self.rect.w = width
 
     def draw(self):
         pygame.draw.polygon(screen, (0, 0, 0), [(400, 400), (1030, 400), (1030, 500), (400, 500)])
-        # Blit the text.
+        "Отображает текст"
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
-        # Blit the rect.
+        "Отображает окно"
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
 
 class Button:
+    "Класс кнопки меню"
     def __init__(self, j, name):
         self.coords1 = (400, j)
         self.coords2 = (650, j)
@@ -123,6 +132,7 @@ class Button:
         self.text = name
 
     def pressed(self, mouse_coords, coords1, coords3):
+        "Фиксирует нажатие на кнопку"
         if coords1[0] < mouse_coords[0] < coords3[0] and coords1[1] < mouse_coords[1] < coords3[1]:
             return True
         else:
@@ -177,7 +187,7 @@ class Player:
         self.mass = 1
         self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
         self.tempcolor = 0
-        self.size = 20
+        self.size = 50
         self.x = xcord
         self.y = ycord
         self.vx = 0
@@ -187,9 +197,21 @@ class Player:
         self.t = 0
         self.t0 = 0
         self.name = 'Someone'
+        self.wins = 0
+
 
     def get_a_name(self, name):
         self.name = name
+
+    def restart_parameters(self, xcord, ycord):
+        self.x = xcord
+        self.y = ycord
+        self.vx = 0
+        self.vy = 0
+        self.ax = 0
+        self.ay = 0
+        self.t = 0
+        self.t0 = 0
 
     def move(self):
         self.x += self.vx
@@ -292,7 +314,7 @@ class Field:
 
 class Spike:
     """
-    Тип данных, отвечающий за взаимдействие игроков с шипами
+    Тип данных, отвечающий за взаимодействие игроков с шипами
     """
     def __init__(self):
         self.x1 = random.randint(300, 700)
