@@ -21,7 +21,7 @@ dt = 0
 
 
 def main_cycle():
-    "Основной цикл управление объектами во время игры"
+    "Основной цикл: управление объектами во время игры"
     global game_over, dt, Player1, Player2, game_break, play
     clock.tick(FPS)
     p1x, p1y = init_operate_p1()
@@ -40,6 +40,7 @@ def main_cycle():
                         [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
     pygame.display.update()
 
+    "Переход к окончанию игры или паузе в зависимости от числа очков"
     if not Player1.live or not Player2.live:
         if not Player1.live:
             Player2.wins += 1
@@ -82,7 +83,7 @@ def init_operate_p2():
     return addacc_x, addacc_y
 
 def controller():
-    "В зависимости от режима игры "
+    "В зависимости от режима игры вызызает нужную функцию"
     global finished, stop, play, pause, game_over, not_started, Player1_wins, Player2_wins
 
     while not finished:
@@ -119,6 +120,8 @@ def controller():
 def menu():
     "Реакция на действия игрока в режиме меню"
     global finished, stop, play, not_started, game_break
+
+    "Создание кнопок"
     button_load = Button(300, 'Сontinue')
     button_play = Button(400, 'New Game')
     button_options = Button(500, 'Options')
@@ -128,10 +131,12 @@ def menu():
     for button in buttons:
         image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
     pygame.display.update()
+    "Обработка событий"
     for event in pygame.event.get():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
+            "Реакции на нажатия кнопок"
             if button_load.pressed(mouse_coords, button_load.coords1, button_load.coords3):
                 if not_started == True:
                     pass
@@ -150,13 +155,14 @@ def menu():
                 pass
 
 def name_control():
-    "Реализует выбор игроками имён и переход в режим паузы"
+    "Реализует выбор игроками имён"
     global finished, stop, play, not_started, pause
     if not_started:
         input_box1 = InputBox(400, 400, 100, 50)
         input = 1
         while input != 3:
             clock = pygame.time.Clock()
+            "Присвоение игрокам имён"
             if input == 1:
                 input_surf = pygame.font.Font(None, 60)
                 input_text = input_surf.render('Enter the name of Player 1', True, RED)
@@ -167,6 +173,7 @@ def name_control():
                 input_text = input_surf.render('Enter the name of Player 2', True, RED)
                 screen.blit(input_text, (275, 300))
                 pygame.display.update()
+            "Реакции на действия игрока"
             for event in pygame.event.get():
                 input_box1.handle_event(event, input)
                 if event.type == pygame.QUIT:
@@ -175,7 +182,7 @@ def name_control():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         input += 1
-
+            "Обновление состояния окошка"
             input_box1.update()
             input_box1.draw()
 
@@ -200,6 +207,7 @@ def get_pause():
 def pause_control():
     "Реагирует на действия игрока в режиме паузы"
     global finished, stop, play, pause
+    "Создание кнопок"
     button_return = Button(400, 'Main Menu')
     button_back = Button(500, 'Back')
     buttons = [button_return, button_back]
@@ -207,6 +215,7 @@ def pause_control():
         image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
     pygame.display.update()
     for event in pygame.event.get():
+        "Реакции на действия игрока"
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
@@ -219,10 +228,11 @@ def pause_control():
                 play = True
 
 def game_over_control():
-    "Происходящее после окончания игры"
+    "Ответственна за происходящее после окончания игры"
     global finished, stop, play, pause, not_started, game_over
 
     play = False
+    "Создание кнопок"
     button_end = Button(625, 'Main Menu')
     button_play_again = Button(725, 'Play again')
     buttons = [button_end, button_play_again]
@@ -230,6 +240,7 @@ def game_over_control():
         image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
     pygame.display.update()
 
+    "Создание надписей"
     over_surf = pygame.font.Font(None, 150)
     over_text = over_surf.render('Game Over', True, RED)
     screen.blit(over_text, (250, 150))
@@ -250,6 +261,7 @@ def game_over_control():
 
     start()
 
+    "Обработка событий"
     for event in pygame.event.get():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
@@ -305,6 +317,7 @@ def game_break_control():
                 pygame.display.update()
 
 def quit(event):
+    "Проверяет, не нужно ли выйти из pygame"
     global finished
     if event.type == pygame.QUIT:
         finished = True

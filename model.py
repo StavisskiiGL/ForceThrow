@@ -15,6 +15,7 @@ FONT = pygame.font.Font(None, 32)
 
 
 def start():
+    "Создание поля, шипов, игроков в начале игры"
     global field, spike, Player1, Player2
     field = Field()
     spike = Spike()
@@ -24,6 +25,7 @@ def start():
     Player2.wins = 0
 
 def restart():
+    "Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"
     global field, spike, Player1, Player2
     field = Field()
     spike = Spike()
@@ -68,7 +70,7 @@ def tick(dt, controls):
 
 
 class InputBox:
-    "Класс окна ввода игроком текста"
+    "Класс окна ввода игроком текста; x, y - координаты левого верхнего угла окна, w - ширина, h - высота"
     def __init__(self, x, y, w, h, text=''):
         "Создание основных параметров окна"
         self.FONT = pygame.font.Font(None, 50)
@@ -79,6 +81,7 @@ class InputBox:
         self.active = False
 
     def handle_event(self, event, Player_number):
+        "Обработка событий, связанных с окном"
         if event.type == pygame.MOUSEBUTTONDOWN:
             "Если игрок щёлкнул по окну"
             if self.rect.collidepoint(event.pos):
@@ -123,7 +126,7 @@ class InputBox:
 
 
 class Button:
-    "Класс кнопки меню"
+    "Класс кнопки меню; j - координата по вертикали, name - текст внутри кнопки"
     def __init__(self, j, name):
         self.coords1 = (400, j)
         self.coords2 = (650, j)
