@@ -2,7 +2,9 @@ import math
 import random
 import pygame
 import keyboard
-from colors import COLOR_INACTIVE, COLOR_ACTIVE
+
+import colors
+from colors import *
 
 screen = pygame.display.set_mode((1024, 1024))
 FPS = 30
@@ -23,6 +25,7 @@ def start():
     Player1.wins = 0
     Player2.wins = 0
 
+
 def restart():
     "Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"
     global field, spike, Player1, Player2
@@ -30,6 +33,7 @@ def restart():
     spike = Spike()
     Player1.restart_parameters(400, 800)
     Player2.restart_parameters(800, 800)
+
 
 def tick(dt, controls):
     global Player1, Player2, spike, field, objects, star, dtstar
@@ -79,7 +83,7 @@ class InputBox:
         self.txt_surface = FONT.render(text, True, self.color)
         self.active = False
 
-    def handle_event(self, event, Player_number):
+    def handle_event(self, event, Player_number, input_type):
         "Обработка событий, связанных с окном"
         if event.type == pygame.MOUSEBUTTONDOWN:
             "Если игрок щёлкнул по окну"
@@ -94,10 +98,16 @@ class InputBox:
             if self.active:
                 if event.key == pygame.K_RETURN:
                     "Присвоение игрокам введённых имён"
-                    if Player_number == 1:
-                        Player1.get_a_name(self.text)
-                    elif Player_number == 2:
-                        Player2.get_a_name(self.text)
+                    if input_type == 'Name':
+                        if Player_number == 1:
+                            Player1.get_a_name(self.text)
+                        elif Player_number == 2:
+                            Player2.get_a_name(self.text)
+                    elif input_type == 'Colour':
+                        if Player_number == 1:
+                            Player1.get_a_colour(self.text)
+                        elif Player_number == 2:
+                            Player2.get_a_colour(self.text)
 
                     self.text = ''
                     screen.fill((0, 0, 0))
@@ -110,7 +120,6 @@ class InputBox:
                 "Обновление текста"
                 self.txt_surface = FONT.render(self.text, True, self.color)
 
-
     def update(self):
         "Удлиняет окно если текст слишком длинный"
         width = max(200, self.txt_surface.get_width()+10)
@@ -122,6 +131,7 @@ class InputBox:
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
         "Отображает окно"
         pygame.draw.rect(screen, self.color, self.rect, 2)
+
 
 class Manager:
     """
@@ -137,6 +147,7 @@ class Manager:
         self.not_started = True
         self.game_break = False
         self.dt = 0
+
 
 class Button:
     "Класс кнопки меню; j - координата по вертикали, name - текст внутри кнопки"
@@ -215,9 +226,22 @@ class Player:
         self.name = 'Someone'
         self.wins = 0
 
-
     def get_a_name(self, name):
         self.name = name
+
+    def get_a_colour(self, color):
+        if color == 'Red':
+            self.color = colors.RED
+        if color == 'Green':
+            self.color = colors.GREEN
+        if color == 'Blue':
+            self.color = colors.BLUE
+        if color == 'Orange':
+            self.color = colors.ORANGE
+        if color == 'White':
+            self.color = colors.WHITE
+        if color == 'Random':
+            self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
 
     def restart_parameters(self, xcord, ycord):
         self.x = xcord

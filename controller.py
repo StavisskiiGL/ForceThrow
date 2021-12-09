@@ -24,6 +24,7 @@ def main_cycle():
     field_drawer.update(field, manager.dt)
     display_player(screen, Player1)
     display_player(screen, Player2)
+    draw_score(screen, Player1, Player2)
 
     if type(objects[0]) != type(1):
         print(objects[0])
@@ -45,7 +46,6 @@ def main_cycle():
         else:
             manager.game_break = True
             manager.play = False
-
 
 
 def init_operate_p1():
@@ -74,6 +74,7 @@ def init_operate_p2():
     if keyboard.is_pressed('right'):
         addacc_x += 0.5
     return addacc_x, addacc_y
+
 
 def controller():
     "В зависимости от режима игры, определяемого состоянием параметров объекта класса Manager, вызызает нужную функцию"
@@ -145,39 +146,67 @@ def menu():
             if button_options.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                 pass
 
+
 def name_control():
     "Реализует выбор игроками имён"
     if manager.not_started:
         input_box1 = InputBox(400, 400, 100, 50)
-        input = 1
-        while input != 3:
+        input1 = 1
+        while input1 != 5:
             clock = pygame.time.Clock()
             "Присвоение игрокам имён"
-            if input == 1:
+            if input1 == 1:
                 input_surf = pygame.font.Font(None, 60)
                 input_text = input_surf.render('Enter the name of Player 1', True, RED)
                 screen.blit(input_text, (275, 300))
                 pygame.display.update()
-            elif input == 2:
+            elif input1 == 2:
+                input_surf = pygame.font.Font(None, 60)
+                input1_text = input_surf.render('Enter Color of Player 1', True, RED)
+                screen.blit(input1_text, (275, 300))
+                input_surf = pygame.font.Font(None, 40)
+                input1_text = input_surf.render('Acceptable Colors: Red, Green, Orange, Blue, White, Random', True,
+                                                WHITE)
+                screen.blit(input1_text, (100, 600))
+                pygame.display.update()
+            elif input1 == 3:
                 input_surf = pygame.font.Font(None, 60)
                 input_text = input_surf.render('Enter the name of Player 2', True, RED)
                 screen.blit(input_text, (275, 300))
                 pygame.display.update()
+            elif input1 == 4:
+                input_surf = pygame.font.Font(None, 60)
+                input1_text = input_surf.render('Enter Color of Player 2', True, RED)
+                screen.blit(input1_text, (275, 300))
+                input_surf = pygame.font.Font(None, 40)
+                input1_text = input_surf.render('Acceptable Colors: Red, Green, Orange, Blue, White, Random', True,
+                                                WHITE)
+                screen.blit(input1_text, (100, 600))
+                pygame.display.update()
             "Реакции на действия игрока"
             for event in pygame.event.get():
-                input_box1.handle_event(event, input)
+                if input1 % 2 == 0:
+                    input_type = 'Colour'
+                else:
+                    input_type = 'Name'
+                if input1 < 3:
+                    player_num = 1
+                else:
+                    player_num = 2
+                input_box1.handle_event(event, player_num, input_type)
                 if event.type == pygame.QUIT:
-                    input = 3
+                    input1 = 5
                     manager.finished = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
-                        input += 1
+                        input1 += 1
             "Обновление состояния окошка"
             input_box1.update()
             input_box1.draw()
 
             pygame.display.flip()
             clock.tick(30)
+
         pygame.display.update()
         manager.not_started = False
 
@@ -215,6 +244,7 @@ def pause_control():
             if button_back.pressed(mouse_coords, button_back.coords1, button_back.coords3):
                 manager.pause = False
                 manager.play = True
+
 
 def game_over_control():
     "Ответственна за происходящее после окончания игры"
@@ -283,7 +313,11 @@ def game_break_control():
     screen.blit(over_text, (240, 250))
     result_surf = pygame.font.Font(None, 75)
 
-    result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
+    if not Player1.live:
+        result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
+    elif not Player2.live:
+        result_text = result_surf.render(Player1.name + ' ' + 'has won in this round!', True, ORANGE)
+
     screen.blit(result_text, (175, 400))
 
     for event in pygame.event.get():
@@ -302,6 +336,7 @@ def game_break_control():
                 restart()
                 screen.fill(BLACK)
                 pygame.display.update()
+
 
 def quit(event):
     "Проверяет, не нужно ли выйти из pygame"
