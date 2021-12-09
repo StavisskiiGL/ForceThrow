@@ -2,14 +2,13 @@ import math
 import random
 import pygame
 import keyboard
+from colors import COLOR_INACTIVE, COLOR_ACTIVE
 
 screen = pygame.display.set_mode((1024, 1024))
 FPS = 30
 star = False
 objects = [0, 0, 0]
 dtstar = 0
-COLOR_INACTIVE = pygame.Color('lightskyblue3')
-COLOR_ACTIVE = pygame.Color('dodgerblue2')
 pygame.init()
 FONT = pygame.font.Font(None, 32)
 
@@ -124,6 +123,20 @@ class InputBox:
         "Отображает окно"
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
+class Manager:
+    """
+    Класс, изменение параметров которого влечёт переключение между режимами игры (меню, собственно игры, паузы, положения между раундами
+    """
+
+    def __init__(self):
+        self.play = False
+        self.finished = False
+        self.pause = False
+        self.game_over = False
+        self.stop = True
+        self.not_started = True
+        self.game_break = False
+        self.dt = 0
 
 class Button:
     "Класс кнопки меню; j - координата по вертикали, name - текст внутри кнопки"
@@ -272,7 +285,6 @@ class Field:
     Тип данных, описывающий свойства и структуру игрового поля
     """
     def evolve(self, x, y, dt):
-        global FPS
         if x == 511 and y > 511:
             xproj = -0.4
             yproj = 0

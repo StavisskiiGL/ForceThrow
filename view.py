@@ -1,12 +1,9 @@
 import pygame
 import pygame.draw
 import math
+from colors import BLACK, WHITE, GREEN
 
 FPS = 30
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GREEN = (124,252, 0)
-
 
 class Drawer:
     def __init__(self, screen):
