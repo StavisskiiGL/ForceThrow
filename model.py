@@ -147,6 +147,7 @@ class Manager:
         self.not_started = True
         self.game_break = False
         self.dt = 0
+        self.music = 'play'
 
 
 class Button:

@@ -72,11 +72,39 @@ def init_operate_p2():
         addacc_x += 0.5
     return addacc_x, addacc_y
 
+def music_control():
+    "Управляет переключением музыки в зависимости от нахождения в меню или игре"
+
+    if manager.stop:
+        if manager.music != 'menu':
+            pygame.mixer.music.fadeout(500)
+            manager.music = 'menu'
+            pygame.mixer.music.unload()
+            pygame.mixer.music.load('menumusic.mp3')
+            pygame.mixer.music.play()
+
+    if manager.play and manager.not_started:
+        pygame.mixer.music.fadeout(500)
+        pygame.mixer.music.rewind()
+        pygame.mixer.music.play()
+
+    if manager.play:
+        if manager.music != 'play':
+            pygame.mixer.music.fadeout(500)
+            manager.music = 'play'
+            pygame.mixer.music.unload()
+            pygame.mixer.music.load('gamemusic.mp3')
+            pygame.mixer.music.play()
+
 
 def controller():
     "В зависимости от режима игры, определяемого состоянием параметров объекта класса Manager, вызызает нужную функцию"
 
+    music_control()
+
     while not manager.finished:
+
+        music_control()
 
         if manager.play and not manager.not_started:
             "Основной цикл управление объектами во время игры"
