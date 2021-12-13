@@ -148,6 +148,7 @@ class Manager:
         self.game_break = False
         self.dt = 0
         self.music = 'play'
+        self.activate_sound = False
 
 
 class Button:
@@ -166,6 +167,12 @@ class Button:
             return True
         else:
             return False
+
+    def change_color(self, mouse_coords, coords1, coords3):
+        if self.pressed(mouse_coords, coords1, coords3):
+            self.color = BLUE
+        else:
+            self.color = GREEN
 
 
 

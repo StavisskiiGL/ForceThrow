@@ -3,6 +3,7 @@ import keyboard
 from model import tick, Button, start, InputBox, screen, restart, Manager
 from view import *
 from colors import BLACK, RED, GREEN, BLUE, ORANGE
+from soundtrack import sound_control, music_control
 
 Player1 = 0
 Player2 = 0
@@ -12,6 +13,44 @@ pygame.display.update()
 field_drawer = Drawer(screen)
 manager = Manager()
 
+def controller():
+    "В зависимости от режима игры, определяемого состоянием параметров объекта класса Manager, вызызает нужную функцию"
+
+    while not manager.finished:
+
+        music_control(manager)
+
+        if manager.play and not manager.not_started:
+            "Основной цикл управление объектами во время игры"
+            main_cycle()
+
+            "Осуществляет переход в режим паузы"
+            get_pause()
+
+        if manager.stop:
+            "Реакция на действия игрока в режиме меню"
+            menu()
+            sound_control(manager)
+
+        if manager.play:
+            "Реализует выбор игроками имён и переход в режим паузы"
+            name_control()
+
+        if manager.pause:
+            "Реагирует на действия игрока в режиме паузы"
+            pause_control()
+            sound_control(manager)
+
+        if manager.game_over:
+            "Происходящее после окончания игры"
+            game_over_control()
+            sound_control(manager)
+            start()
+
+        if manager.game_break:
+            "Отвечает за происходящее между раундами"
+            game_break_control()
+            sound_control(manager)
 
 def main_cycle():
     "Основной цикл: управление объектами во время игры"
@@ -44,7 +83,6 @@ def main_cycle():
         pygame.display.update()
         get_over(Player1, Player2)
 
-
 def init_operate_p1():
     addacc_x = 0
     addacc_y = 0
@@ -58,7 +96,6 @@ def init_operate_p1():
         addacc_x += 0.5 * 30 / FPS
     return addacc_x, addacc_y
 
-
 def init_operate_p2():
     addacc_x = 0
     addacc_y = 0
@@ -71,69 +108,6 @@ def init_operate_p2():
     if keyboard.is_pressed('right'):
         addacc_x += 0.5
     return addacc_x, addacc_y
-
-def music_control():
-    "Управляет переключением музыки в зависимости от нахождения в меню или игре"
-
-    if manager.stop:
-        if manager.music != 'menu':
-            pygame.mixer.music.fadeout(500)
-            manager.music = 'menu'
-            pygame.mixer.music.unload()
-            pygame.mixer.music.load('menumusic.mp3')
-            pygame.mixer.music.play()
-
-    if manager.play and manager.not_started:
-        pygame.mixer.music.fadeout(500)
-        pygame.mixer.music.rewind()
-        pygame.mixer.music.play()
-
-    if manager.play:
-        if manager.music != 'play':
-            pygame.mixer.music.fadeout(500)
-            manager.music = 'play'
-            pygame.mixer.music.unload()
-            pygame.mixer.music.load('gamemusic.mp3')
-            pygame.mixer.music.play()
-
-
-def controller():
-    "В зависимости от режима игры, определяемого состоянием параметров объекта класса Manager, вызызает нужную функцию"
-
-    music_control()
-
-    while not manager.finished:
-
-        music_control()
-
-        if manager.play and not manager.not_started:
-            "Основной цикл управление объектами во время игры"
-            main_cycle()
-
-            "Осуществляет переход в режим паузы"
-            get_pause()
-
-        if manager.stop:
-            "Реакция на действия игрока в режиме меню"
-            menu()
-
-        if manager.play:
-            "Реализует выбор игроками имён и переход в режим паузы"
-            name_control()
-
-        if manager.pause:
-            "Реагирует на действия игрока в режиме паузы"
-            pause_control()
-
-        if manager.game_over:
-            "Происходящее после окончания игры"
-            game_over_control()
-            start()
-
-        if manager.game_break:
-            "Отвечает за происходящее между раундами"
-            game_break_control()
-
 
 def menu():
     "Реакция на действия игрока в режиме меню"
@@ -151,12 +125,15 @@ def menu():
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
             "Реакции на нажатия кнопок"
+            manager.activate_sound = True
             if button_load.pressed(mouse_coords, button_load.coords1, button_load.coords3):
                 if manager.not_started == True:
                     pass
                 else:
                     manager.stop = False
                     manager.play = True
+                    screen.fill(BLACK)
+                    pygame.display.update()
             if button_play.pressed(mouse_coords, button_play.coords1, button_play.coords3):
                 manager.stop = False
                 manager.play = True
@@ -168,17 +145,7 @@ def menu():
             if button_options.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                 pass
         if event.type == pygame.MOUSEMOTION:
-            mouse_coords = pygame.mouse.get_pos()
-            for button in buttons:
-                if button.pressed(mouse_coords, button.coords1, button.coords3):
-                    button.color = BLUE
-                else:
-                    button.color = GREEN
-            for button in buttons:
-                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                             button.color)
-            pygame.display.update()
-
+            buttons_operations(buttons)
 
 def name_control():
     "Реализует выбор игроками имён"
@@ -239,10 +206,9 @@ def name_control():
 
             pygame.display.flip()
             clock.tick(30)
-
+        screen.fill(BLACK)
         pygame.display.update()
         manager.not_started = False
-
 
 def get_pause():
     "Совершает переход в режим паузы во время игры"
@@ -307,8 +273,6 @@ def get_over(Player1, Player2):
         screen.blit(over_text, (240, 250))
         result_surf = pygame.font.Font(None, 75)
 
-
-
         if not Player1.live:
             result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
         elif not Player2.live:
@@ -330,30 +294,21 @@ def pause_control():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
+            manager.activate_sound = True
+
             if button_return.pressed(mouse_coords, button_return.coords1, button_return.coords3):
                 manager.pause = False
                 manager.stop = True
                 screen.fill(BLACK)
+                pygame.display.update()
             if button_back.pressed(mouse_coords, button_back.coords1, button_back.coords3):
                 manager.pause = False
                 manager.play = True
         if event.type == pygame.MOUSEMOTION:
-            mouse_coords = pygame.mouse.get_pos()
-            for button in buttons:
-                if button.pressed(mouse_coords, button.coords1, button.coords3):
-                    button.color = BLUE
-                else:
-                    button.color = GREEN
-            for button in buttons:
-                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                                button.color)
-            pygame.display.update()
-
-
+            buttons_operations(buttons)
 
 def game_over_control():
     "Ответственна за происходящее после окончания игры"
-
     manager.play = False
     "Создание кнопок"
     button_end = Button(625, 'Main Menu')
@@ -388,10 +343,13 @@ def game_over_control():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
+            manager.activate_sound = True
+
             if button_end.pressed(mouse_coords, button_end.coords1, button_end.coords3):
                 manager.game_over = False
                 manager.stop = True
                 screen.fill(BLACK)
+                pygame.display.update()
             if button_play_again.pressed(mouse_coords, button_play_again.coords1, button_play_again.coords3):
                 manager.game_over = False
                 manager.play = True
@@ -400,17 +358,7 @@ def game_over_control():
                 pygame.display.update()
                 start()
         if event.type == pygame.MOUSEMOTION:
-            mouse_coords = pygame.mouse.get_pos()
-            for button in buttons:
-                if button.pressed(mouse_coords, button.coords1, button.coords3):
-                    button.color = BLUE
-                if not button.pressed(mouse_coords, button.coords1, button.coords3):
-                    button.color = GREEN
-            for button in buttons:
-                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                             button.color)
-            pygame.display.update()
-
+            buttons_operations(buttons)
 
 def game_break_control():
     "Отвечает за происходящее между раундами"
@@ -438,6 +386,8 @@ def game_break_control():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
+            manager.activate_sound = True
+
             if button_next_round.pressed(mouse_coords, button_next_round.coords1, button_next_round.coords3):
                 manager.game_break = False
                 manager.play = True
@@ -452,17 +402,15 @@ def game_break_control():
                 pygame.display.update()
         if event.type == pygame.MOUSEMOTION:
             #Окрашивание активированных кнопок
-            mouse_coords = pygame.mouse.get_pos()
-            for button in buttons:
-                if button.pressed(mouse_coords, button.coords1, button.coords3):
-                    button.color = BLUE
-                else:
-                    button.color = GREEN
-            for button in buttons:
-                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                             button.color)
-            pygame.display.update()
+            buttons_operations(buttons)
 
+def buttons_operations(buttons):
+    mouse_coords = pygame.mouse.get_pos()
+    for button in buttons:
+        button.change_color(mouse_coords, button.coords1, button.coords3)
+        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                     button.color)
+    pygame.display.update()
 
 def quit(event):
     "Проверяет, не нужно ли выйти из pygame"
