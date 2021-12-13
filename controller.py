@@ -34,18 +34,15 @@ def main_cycle():
                         [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
     pygame.display.update()
 
-    "Переход к окончанию игры или паузе в зависимости от числа очков"
+    "Переход к окончанию игры в зависимости от числа очков"
     if not Player1.live or not Player2.live:
         if not Player1.live:
             Player2.wins += 1
         else:
             Player1.wins += 1
-        if Player1.wins == 3 or Player2.wins == 3:
-            manager.game_over = True
-            manager.play = False
-        else:
-            manager.game_break = True
-            manager.play = False
+        screen.fill(BLACK)
+        pygame.display.update()
+        get_over(Player1, Player2)
 
 
 def init_operate_p1():
@@ -120,9 +117,6 @@ def menu():
     button_exit = Button(600, 'Exit')
     buttons = [button_load, button_play, button_options, button_exit]
 
-    for button in buttons:
-        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
-    pygame.display.update()
     "Обработка событий"
     for event in pygame.event.get():
         quit(event)
@@ -145,6 +139,17 @@ def menu():
                 manager.finished = True
             if button_options.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                 pass
+        if event.type == pygame.MOUSEMOTION:
+            mouse_coords = pygame.mouse.get_pos()
+            for button in buttons:
+                if button.pressed(mouse_coords, button.coords1, button.coords3):
+                    button.color = BLUE
+                else:
+                    button.color = GREEN
+            for button in buttons:
+                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                             button.color)
+            pygame.display.update()
 
 
 def name_control():
@@ -217,10 +222,72 @@ def get_pause():
     if not manager.not_started and keyboard.is_pressed('Esc'):
         manager.play = False
         manager.pause = True
+        button_return = Button(400, 'Main Menu')
+        button_back = Button(500, 'Back')
+        buttons = [button_return, button_back]
+
+        for button in buttons:
+            image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                         button.color)
+        pygame.display.update()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             manager.finished = True
 
+def get_over(Player1, Player2):
+    #Фиксирует окончание игры
+    if Player1.wins == 3 or Player2.wins == 3:
+        manager.game_over = True
+        manager.play = False
+        button_end = Button(625, 'Main Menu')
+        button_play_again = Button(725, 'Play again')
+        buttons = [button_end, button_play_again]
+        for button in buttons:
+            image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                         button.color)
+        "Создание надписей"
+        over_surf = pygame.font.Font(None, 150)
+        over_text = over_surf.render('Game Over', True, RED)
+        screen.blit(over_text, (250, 150))
+
+        score_surf = pygame.font.Font(None, 150)
+        score_text = score_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, BLUE)
+        screen.blit(score_text, (260, 250))
+
+        result_surf = pygame.font.Font(None, 75)
+
+        if Player1.wins == 3:
+            result_text = result_surf.render(Player2.name + ' ' + 'has won in this game!', True, ORANGE)
+        else:
+            result_text = result_surf.render(Player1.name + ' ' + 'has won in this game!', True, ORANGE)
+        screen.blit(result_text, (150, 400))
+
+        pygame.display.update()
+    else:
+        manager.game_break = True
+        manager.play = False
+
+        button_next_round = Button(525, 'Next round')
+        button_Main_Menu = Button(625, 'Main Menu')
+        buttons = [button_next_round, button_Main_Menu]
+        for button in buttons:
+            image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                         button.color)
+        over_surf = pygame.font.Font(None, 150)
+        over_text = over_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, RED)
+        screen.blit(over_text, (240, 250))
+        result_surf = pygame.font.Font(None, 75)
+
+
+
+        if not Player1.live:
+            result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
+        elif not Player2.live:
+            result_text = result_surf.render(Player1.name + ' ' + 'has won in this round!', True, ORANGE)
+
+        screen.blit(result_text, (175, 400))
+        pygame.display.update()
 
 def pause_control():
     "Реагирует на действия игрока в режиме паузы"
@@ -229,9 +296,7 @@ def pause_control():
     button_return = Button(400, 'Main Menu')
     button_back = Button(500, 'Back')
     buttons = [button_return, button_back]
-    for button in buttons:
-        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
-    pygame.display.update()
+
     for event in pygame.event.get():
         "Реакции на действия игрока"
         quit(event)
@@ -244,6 +309,18 @@ def pause_control():
             if button_back.pressed(mouse_coords, button_back.coords1, button_back.coords3):
                 manager.pause = False
                 manager.play = True
+        if event.type == pygame.MOUSEMOTION:
+            mouse_coords = pygame.mouse.get_pos()
+            for button in buttons:
+                if button.pressed(mouse_coords, button.coords1, button.coords3):
+                    button.color = BLUE
+                else:
+                    button.color = GREEN
+            for button in buttons:
+                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                                button.color)
+            pygame.display.update()
+
 
 
 def game_over_control():
@@ -255,8 +332,7 @@ def game_over_control():
     button_play_again = Button(725, 'Play again')
     buttons = [button_end, button_play_again]
     for button in buttons:
-        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
-    pygame.display.update()
+        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
 
     "Создание надписей"
     over_surf = pygame.font.Font(None, 150)
@@ -295,6 +371,17 @@ def game_over_control():
                 screen.fill(BLACK)
                 pygame.display.update()
                 start()
+        if event.type == pygame.MOUSEMOTION:
+            mouse_coords = pygame.mouse.get_pos()
+            for button in buttons:
+                if button.pressed(mouse_coords, button.coords1, button.coords3):
+                    button.color = BLUE
+                if not button.pressed(mouse_coords, button.coords1, button.coords3):
+                    button.color = GREEN
+            for button in buttons:
+                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                             button.color)
+            pygame.display.update()
 
 
 def game_break_control():
@@ -305,8 +392,7 @@ def game_break_control():
     button_Main_Menu = Button(625, 'Main Menu')
     buttons = [button_next_round, button_Main_Menu]
     for button in buttons:
-        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text)
-    pygame.display.update()
+        image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
 
     over_surf = pygame.font.Font(None, 150)
     over_text = over_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, RED)
@@ -336,6 +422,18 @@ def game_break_control():
                 restart()
                 screen.fill(BLACK)
                 pygame.display.update()
+        if event.type == pygame.MOUSEMOTION:
+            #Окрашивание активированных кнопок
+            mouse_coords = pygame.mouse.get_pos()
+            for button in buttons:
+                if button.pressed(mouse_coords, button.coords1, button.coords3):
+                    button.color = BLUE
+                else:
+                    button.color = GREEN
+            for button in buttons:
+                image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                             button.color)
+            pygame.display.update()
 
 
 def quit(event):

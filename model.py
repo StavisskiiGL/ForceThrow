@@ -157,13 +157,16 @@ class Button:
         self.coords3 = (650, j + 100)
         self.coords4 = (400, j + 100)
         self.text = name
+        self.color = GREEN
 
     def pressed(self, mouse_coords, coords1, coords3):
-        "Фиксирует нажатие на кнопку"
+        "Определяет, наведена ли мышь на кнопку"
         if coords1[0] < mouse_coords[0] < coords3[0] and coords1[1] < mouse_coords[1] < coords3[1]:
             return True
         else:
             return False
+
+
 
 
 class StarPowerUp:

@@ -31,9 +31,9 @@ def display_player(screen, player):
     pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
 
 
-def image_button(screen, coords1, coords2, coords3, coords4, name):
+def image_button(screen, coords1, coords2, coords3, coords4, name, color):
     pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
-    pygame.draw.polygon(screen, GREEN, [coords1, coords2, coords3, coords4])
+    pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
     text_surf = pygame.font.Font(None, 60)
     button_text = text_surf.render(name, True, (0, 0, 0))
     screen.blit(button_text, coords1)
