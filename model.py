@@ -149,6 +149,10 @@ class Manager:
         self.dt = 0
         self.music = 'play'
         self.activate_sound = False
+        self.music_volume = 0.2
+        self.options = False
+        self.sounds_volume = 0.5
+
 
 
 class Button:
@@ -174,6 +178,20 @@ class Button:
         else:
             self.color = GREEN
 
+    def image_button(screen, coords1, coords2, coords3, coords4, name, color):
+        pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
+        pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
+        text_surf = pygame.font.Font(None, 60)
+        button_text = text_surf.render(name, True, (0, 0, 0))
+        screen.blit(button_text, coords1)
+
+    def buttons_view(buttons, screen):
+        mouse_coords = pygame.mouse.get_pos()
+        for button in buttons:
+            button.change_color(mouse_coords, button.coords1, button.coords3)
+            Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
+                         button.color)
+        pygame.display.update()
 
 
 

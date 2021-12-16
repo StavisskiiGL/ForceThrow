@@ -23,9 +23,13 @@ def music_control(manager):
             pygame.mixer.music.unload()
             pygame.mixer.music.load('gamemusic.mp3')
             pygame.mixer.music.play()
+    if manager.options:
+        pygame.mixer.music.set_volume(manager.music_volume)
 
-def sound_control(manager):
+def sounds_control(manager):
     if manager.activate_sound:
         activ_sound = pygame.mixer.Sound('activatesound.mp3')
         pygame.mixer.Sound.play(activ_sound)
         manager.activate_sound = False
+
+

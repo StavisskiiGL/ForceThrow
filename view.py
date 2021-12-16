@@ -26,17 +26,13 @@ class Drawer:
                 pygame.draw.line(self.screen, WHITE, (x + r * math.cos(angle), y + r * math.sin(angle)),
                                  (x + r * math.sin(angle), y - r * math.cos(angle)), 4)
 
+    def update_options(self, space):
+
+        space.blit()
+        space.update()
 
 def display_player(screen, player):
     pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
-
-
-def image_button(screen, coords1, coords2, coords3, coords4, name, color):
-    pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
-    pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
-    text_surf = pygame.font.Font(None, 60)
-    button_text = text_surf.render(name, True, (0, 0, 0))
-    screen.blit(button_text, coords1)
 
 
 def draw_score(screen, player1, player2):
