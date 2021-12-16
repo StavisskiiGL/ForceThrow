@@ -28,7 +28,7 @@ def music_control(manager):
 
 def sounds_control(manager):
     if manager.activate_sound:
-        activ_sound = pygame.mixer.Sound('activatesound.mp3')
+        activ_sound = pygame.mixer.Sound('activatesound.wav')
         pygame.mixer.Sound.play(activ_sound)
         manager.activate_sound = False
 
