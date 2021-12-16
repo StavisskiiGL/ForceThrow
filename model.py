@@ -143,9 +143,11 @@ class Manager:
         self.finished = False
         self.pause = False
         self.game_over = False
+        self.game_over_counter = 0
         self.stop = True
         self.not_started = True
         self.game_break = False
+        self.game_break_counter = 0
         self.dt = 0
         self.music = 'play'
         self.activate_sound = False
