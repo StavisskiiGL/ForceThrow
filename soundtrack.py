@@ -1,5 +1,6 @@
 import pygame
 
+
 def music_control(manager):
     "Управляет переключением музыки в зависимости от нахождения в меню или игре"
 
@@ -25,6 +26,7 @@ def music_control(manager):
             pygame.mixer.music.play()
     if manager.options:
         pygame.mixer.music.set_volume(manager.music_volume)
+
 
 def sounds_control(manager):
     if manager.activate_sound:

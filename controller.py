@@ -245,6 +245,7 @@ def get_over(Player1, Player2):
     #Фиксирует окончание игры
     if Player1.wins == 3 or Player2.wins == 3:
         manager.game_over = True
+        manager.game_over_counter += 1
         manager.play = False
         button_end = Button(625, 'Main Menu')
         button_play_again = Button(725, 'Play again')
@@ -264,9 +265,9 @@ def get_over(Player1, Player2):
         result_surf = pygame.font.Font(None, 75)
 
         if Player1.wins == 3:
-            result_text = result_surf.render(Player2.name + ' ' + 'has won in this game!', True, ORANGE)
-        else:
             result_text = result_surf.render(Player1.name + ' ' + 'has won in this game!', True, ORANGE)
+        else:
+            result_text = result_surf.render(Player2.name + ' ' + 'has won in this game!', True, ORANGE)
         screen.blit(result_text, (150, 400))
 
         pygame.display.update()
@@ -340,26 +341,7 @@ def game_over_control():
     buttons = [button_end, button_play_again]
     for button in buttons:
         Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
-
-    "Создание надписей"
-    over_surf = pygame.font.Font(None, 150)
-    over_text = over_surf.render('Game Over', True, RED)
-    screen.blit(over_text, (250, 150))
-
-    score_surf = pygame.font.Font(None, 150)
-    score_text = score_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, BLUE)
-    screen.blit(score_text, (260, 250))
-
-    result_surf = pygame.font.Font(None, 75)
-
-    if Player1.wins == 3:
-        result_text = result_surf.render(Player2.name + ' ' + 'has won in this game!', True, ORANGE)
-    else:
-        result_text = result_surf.render(Player1.name + ' ' + 'has won in this game!', True, ORANGE)
-
     manager.not_started = True
-    screen.blit(result_text, (150, 400))
-
     start()
 
     "Обработка событий"
@@ -394,18 +376,6 @@ def game_break_control():
     buttons = [button_next_round, button_Main_Menu]
     for button in buttons:
         Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
-
-    over_surf = pygame.font.Font(None, 150)
-    over_text = over_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, RED)
-    screen.blit(over_text, (240, 250))
-    result_surf = pygame.font.Font(None, 75)
-
-    if not Player1.live:
-        result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
-    elif not Player2.live:
-        result_text = result_surf.render(Player1.name + ' ' + 'has won in this round!', True, ORANGE)
-
-    screen.blit(result_text, (175, 400))
 
     for event in pygame.event.get():
         quit(event)
