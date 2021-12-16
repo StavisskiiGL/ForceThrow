@@ -231,18 +231,14 @@ def get_pause():
         button_return = Button(400, 'Main Menu')
         button_back = Button(500, 'Back')
         buttons = [button_return, button_back]
-
-        for button in buttons:
-            Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                         button.color)
-        pygame.display.update()
+        Button.buttons_view(buttons, screen)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             manager.finished = True
 
 def get_over(Player1, Player2):
-    #Фиксирует окончание игры
+    #Фиксирует переход к окончанию игры
     if Player1.wins == 3 or Player2.wins == 3:
         manager.game_over = True
         manager.game_over_counter += 1
@@ -250,9 +246,7 @@ def get_over(Player1, Player2):
         button_end = Button(625, 'Main Menu')
         button_play_again = Button(725, 'Play again')
         buttons = [button_end, button_play_again]
-        for button in buttons:
-            Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                         button.color)
+        Button.buttons_view(buttons, screen)
         "Создание надписей"
         over_surf = pygame.font.Font(None, 150)
         over_text = over_surf.render('Game Over', True, RED)
@@ -278,9 +272,8 @@ def get_over(Player1, Player2):
         button_next_round = Button(525, 'Next round')
         button_Main_Menu = Button(625, 'Main Menu')
         buttons = [button_next_round, button_Main_Menu]
-        for button in buttons:
-            Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                         button.color)
+        Button.buttons_view(buttons, screen)
+
         over_surf = pygame.font.Font(None, 150)
         over_text = over_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, RED)
         screen.blit(over_text, (240, 250))
@@ -295,16 +288,13 @@ def get_over(Player1, Player2):
         pygame.display.update()
 
 def get_menu():
-    "Осуществляет переход в режим меню"
+    "Отображение кнопок при переходе в режим меню"
     button_load = Button(300, 'Сontinue')
     button_play = Button(400, 'New Game')
     button_options = Button(500, 'Options')
     button_exit = Button(600, 'Exit')
     buttons = [button_load, button_play, button_options, button_exit]
-
-    for button in buttons:
-        Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
-    pygame.display.update()
+    Button.image_button(buttons, screen)
 
 def pause_control():
     "Реагирует на действия игрока в режиме паузы"
@@ -339,8 +329,7 @@ def game_over_control():
     button_end = Button(625, 'Main Menu')
     button_play_again = Button(725, 'Play again')
     buttons = [button_end, button_play_again]
-    for button in buttons:
-        Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
+    Button.buttons_view(buttons, screen)
     manager.not_started = True
     start()
 
@@ -374,15 +363,14 @@ def game_break_control():
     button_next_round = Button(525, 'Next round')
     button_Main_Menu = Button(625, 'Main Menu')
     buttons = [button_next_round, button_Main_Menu]
-    for button in buttons:
-        Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text, button.color)
+    Button.buttons_view(buttons, screen)
 
     for event in pygame.event.get():
         quit(event)
         if event.type == pygame.MOUSEBUTTONUP:
             mouse_coords = pygame.mouse.get_pos()
             manager.activate_sound = True
-
+            "Реакция на нажатия кнопок"
             if button_next_round.pressed(mouse_coords, button_next_round.coords1, button_next_round.coords3):
                 manager.game_break = False
                 manager.play = True
@@ -418,14 +406,12 @@ def options_control(screen):
     """
     button_return = Button(500, 'Main Menu')
     buttons = [button_return]
-    Button.image_button(screen, button_return.coords1, button_return.coords2, button_return.coords3, button_return.coords4, button_return.text, button_return.color)
-    pygame.display.update()
+    Button.buttons_view(buttons, screen)
     menu, box = init_box(screen, "Music")
 
     while manager.options:
         for event in pygame.event.get():
             menu.react(event)
-
             quit(event)
             if event.type == pygame.MOUSEBUTTONUP:
                 mouse_coords = pygame.mouse.get_pos()
@@ -437,6 +423,7 @@ def options_control(screen):
                     screen.fill(BLACK)
                     pygame.display.update()
             if event.type == pygame.MOUSEMOTION:
+                "Отображение и окрашивание активированных кнопок"
                 Button.buttons_view(buttons, screen)
 
         music_control(manager)
