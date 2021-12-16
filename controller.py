@@ -294,7 +294,7 @@ def get_menu():
     button_options = Button(500, 'Options')
     button_exit = Button(600, 'Exit')
     buttons = [button_load, button_play, button_options, button_exit]
-    Button.image_button(buttons, screen)
+    Button.buttons_view(buttons, screen)
 
 def pause_control():
     "Реагирует на действия игрока в режиме паузы"
