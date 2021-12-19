@@ -297,15 +297,17 @@ class Player:
     def get_a_colour(self, color):
         if color == 'Red':
             self.color = colors.RED
-        if color == 'Green':
+        elif color == 'Green':
             self.color = colors.GREEN
-        if color == 'Blue':
+        elif color == 'Blue':
             self.color = colors.BLUE
-        if color == 'Orange':
+        elif color == 'Orange':
             self.color = colors.ORANGE
-        if color == 'White':
+        elif color == 'White':
             self.color = colors.WHITE
-        if color == 'Random':
+        elif color == 'Random':
+            self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
+        else:
             self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
 
     def restart_parameters(self, xcord, ycord):
