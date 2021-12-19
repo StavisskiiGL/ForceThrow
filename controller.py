@@ -17,8 +17,10 @@ field_drawer = Drawer(screen)
 manager = Manager()
 drawer = Drawer(screen)
 
+
 def controller():
-    "В зависимости от режима игры, определяемого состоянием параметров объекта класса Manager, вызызает нужную функцию"
+    """В зависимости от режима игры, определяемого состоянием параметров
+    объекта класса Manager, вызызает нужную функцию"""
 
     pygame.mixer.music.set_volume(manager.music_volume)
 
@@ -61,8 +63,10 @@ def controller():
         if manager.options:
             options_control(screen)
 
+
 def main_cycle():
-    "Основной цикл: управление объектами во время игры"
+    """Основной цикл: управление объектами во время игры"""
+
     global Player1, Player2
     clock.tick(FPS)
     p1x, p1y = init_operate_p1()
@@ -92,6 +96,7 @@ def main_cycle():
         pygame.display.update()
         get_over(Player1, Player2)
 
+
 def init_operate_p1():
     addacc_x = 0
     addacc_y = 0
@@ -104,6 +109,7 @@ def init_operate_p1():
     if keyboard.is_pressed('d'):
         addacc_x += 0.5 * 30 / FPS
     return addacc_x, addacc_y
+
 
 def init_operate_p2():
     addacc_x = 0
@@ -118,8 +124,9 @@ def init_operate_p2():
         addacc_x += 0.5
     return addacc_x, addacc_y
 
+
 def menu():
-    "Реакция на действия игрока в режиме меню"
+    """Реакция на действия игрока в режиме меню"""
 
     "Создание кнопок"
     button_load = Button(300, 'Сontinue')
@@ -136,9 +143,7 @@ def menu():
             "Реакции на нажатия кнопок"
             manager.activate_sound = True
             if button_load.pressed(mouse_coords, button_load.coords1, button_load.coords3):
-                if manager.not_started == True:
-                    pass
-                else:
+                if not manager.not_started:
                     manager.stop = False
                     manager.play = True
                     screen.fill(BLACK)
@@ -159,8 +164,10 @@ def menu():
         if event.type == pygame.MOUSEMOTION:
             Button.buttons_view(buttons, screen)
 
+
 def name_control():
-    "Реализует выбор игроками имён"
+    """Реализует выбор игроками имён"""
+
     if manager.not_started:
         input_box1 = InputBox(400, 400, 100, 50)
         input1 = 1
@@ -222,8 +229,9 @@ def name_control():
         pygame.display.update()
         manager.not_started = False
 
+
 def get_pause():
-    "Совершает переход в режим паузы во время игры"
+    """Совершает переход в режим паузы во время игры"""
 
     if not manager.not_started and keyboard.is_pressed('Esc'):
         manager.play = False
@@ -237,9 +245,11 @@ def get_pause():
         if event.type == pygame.QUIT:
             manager.finished = True
 
-def get_over(Player1, Player2):
-    #Фиксирует переход к окончанию игры
-    if Player1.wins == 3 or Player2.wins == 3:
+
+def get_over(player1, player2):
+    """Фиксирует переход к окончанию игры"""
+
+    if player1.wins == 3 or player2.wins == 3:
         manager.game_over = True
         manager.game_over_counter += 1
         manager.play = False
@@ -258,20 +268,21 @@ def get_over(Player1, Player2):
 
         result_surf = pygame.font.Font(None, 75)
 
-        if Player1.wins == 3:
-            result_text = result_surf.render(Player1.name + ' ' + 'has won in this game!', True, ORANGE)
+        if player1.wins == 3:
+            result_text = result_surf.render(player1.name + ' ' + 'has won in this game!', True, ORANGE)
         else:
-            result_text = result_surf.render(Player2.name + ' ' + 'has won in this game!', True, ORANGE)
-        screen.blit(result_text, (150, 400))
+            result_text = result_surf.render(player2.name + ' ' + 'has won in this game!', True, ORANGE)
 
+        screen.blit(result_text, (150, 400))
         pygame.display.update()
+
     else:
         manager.game_break = True
         manager.play = False
 
         button_next_round = Button(525, 'Next round')
-        button_Main_Menu = Button(625, 'Main Menu')
-        buttons = [button_next_round, button_Main_Menu]
+        button_main_menu = Button(625, 'Main Menu')
+        buttons = [button_next_round, button_main_menu]
         Button.buttons_view(buttons, screen)
 
         over_surf = pygame.font.Font(None, 150)
@@ -281,14 +292,15 @@ def get_over(Player1, Player2):
 
         if not Player1.live:
             result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
-        elif not Player2.live:
+        else:
             result_text = result_surf.render(Player1.name + ' ' + 'has won in this round!', True, ORANGE)
 
         screen.blit(result_text, (175, 400))
         pygame.display.update()
 
+
 def get_menu():
-    "Отображение кнопок при переходе в режим меню"
+    """Отображение кнопок при переходе в режим меню"""
     button_load = Button(300, 'Сontinue')
     button_play = Button(400, 'New Game')
     button_options = Button(500, 'Options')
@@ -296,8 +308,9 @@ def get_menu():
     buttons = [button_load, button_play, button_options, button_exit]
     Button.buttons_view(buttons, screen)
 
+
 def pause_control():
-    "Реагирует на действия игрока в режиме паузы"
+    """Реагирует на действия игрока в режиме паузы"""
 
     "Создание кнопок"
     button_return = Button(400, 'Main Menu')
@@ -322,8 +335,9 @@ def pause_control():
         if event.type == pygame.MOUSEMOTION:
             Button.buttons_view(buttons, screen)
 
+
 def game_over_control():
-    "Ответственна за происходящее после окончания игры"
+    """Ответственна за происходящее после окончания игры"""
     manager.play = False
     "Создание кнопок"
     button_end = Button(625, 'Main Menu')
@@ -356,13 +370,14 @@ def game_over_control():
         if event.type == pygame.MOUSEMOTION:
             Button.buttons_view(buttons, screen)
 
+
 def game_break_control():
-    "Отвечает за происходящее между раундами"
+    """Отвечает за происходящее между раундами"""
 
     manager.play = False
     button_next_round = Button(525, 'Next round')
-    button_Main_Menu = Button(625, 'Main Menu')
-    buttons = [button_next_round, button_Main_Menu]
+    button_main_menu = Button(625, 'Main Menu')
+    buttons = [button_next_round, button_main_menu]
     Button.buttons_view(buttons, screen)
 
     for event in pygame.event.get():
@@ -377,7 +392,7 @@ def game_break_control():
                 restart()
                 screen.fill(BLACK)
                 pygame.display.update()
-            if button_Main_Menu.pressed(mouse_coords, button_Main_Menu.coords1, button_Main_Menu.coords3):
+            if button_main_menu.pressed(mouse_coords, button_main_menu.coords1, button_main_menu.coords3):
                 manager.game_break = False
                 manager.stop = True
                 restart()
@@ -385,84 +400,88 @@ def game_break_control():
                 pygame.display.update()
                 get_menu()
         if event.type == pygame.MOUSEMOTION:
-            #Отображение и окрашивание активированных кнопок
+            """Отображение и окрашивание активированных кнопок"""
             Button.buttons_view(buttons, screen)
 
 
-def slider_to_real(val):
-    return (0.01 * val)
+def slider_reaction(event, slider_music, slider_sounds):
+    """Преобразует установленные на слайдерах значения в значения уровней громкости музыки и звуков"""
 
-
-def slider_music_reaction(event):
-    manager.music_volume = slider_to_real(event.el.get_value())
-
-def slider_sounds_reaction(event):
-    manager.sounds_volume = slider_to_real(event.el.get_value())
+    if event.el == slider_music:
+        new_volume = event.el.get_value() * 0.01
+        manager.music_volume = new_volume
+    elif event.el == slider_sounds:
+        new_volume = event.el.get_value() * 0.01
+        manager.sounds_volume = new_volume
+        sounds_control(manager)
 
 
 def options_control(screen):
-    """Главная функция главного модуля.
-    Создаёт объекты графического дизайна библиотеки tkinter: окно, холст, фрейм с кнопками, кнопки.
+    """Реагирует на действия игрока при переходе в раздел меню "options"
     """
-    button_return = Button(500, 'Main Menu')
-    buttons = [button_return]
-    Button.buttons_view(buttons, screen)
-    menu, box = init_box(screen, "Music")
+    menu, box = init_box()
 
     while manager.options:
+
         for event in pygame.event.get():
+            "Реакция на действия игрока"
             menu.react(event)
             quit(event)
-            if event.type == pygame.MOUSEBUTTONUP:
-                mouse_coords = pygame.mouse.get_pos()
-                "Реакции на нажатия кнопок"
-                manager.activate_sound = True
-                if button_return.pressed(mouse_coords, button_return.coords1, button_return.coords3):
-                    manager.options = False
-                    manager.stop = True
-                    screen.fill(BLACK)
-                    pygame.display.update()
-            if event.type == pygame.MOUSEMOTION:
-                "Отображение и окрашивание активированных кнопок"
-                Button.buttons_view(buttons, screen)
-
+            if event.type == pygame.QUIT:
+                manager.options = False
+        "Установление новых уровней громкости"
         music_control(manager)
         sounds_control(manager)
-        screen.fill(BLACK)
-        drawer.update_options(box)
 
+        "Обновление внешнего вида слайдеров"
+        box.blit()
+        box.update()
+
+    "Переход обратно в меню"
     screen.fill(BLACK)
     pygame.display.update()
     get_menu()
 
-def init_box(screen, type):
-    slider = thorpy.SliderX(300, (0, 100), type)
-    if type == "Music":
-        slider.user_func = slider_music_reaction
-        topleft = 400
-    else:
-        slider.user_func = slider_sounds_reaction
-        topleft = 450
-    box = thorpy.Box(elements=[
-        slider])
-    reaction1 = thorpy.Reaction(reacts_to = thorpy.constants.THORPY_EVENT,
-                                reac_func = slider.user_func,
-                                event_args = {"id": thorpy.constants.EVENT_SLIDE},
-                                params = {},
-                                reac_name = "slider_music_reaction")
 
-    box.add_reaction(reaction1)
+def init_box():
+    """Создаёт слайдера контроля громкости музыки и звуков, кнопку возвращения в главное меню,
+    описывает реакцию на связанные с ними действия игрока"""
 
+    button_stop = thorpy.make_button("Quit", func=stop_options)
+    slider_music = thorpy.SliderX(length=400, limvals=(0, 100), text="Music:", type_=int)
+    slider_sounds = thorpy.SliderX(length=400, limvals=(0, 100), text="Sounds:", type_=int)
+
+    "Установка слайдеров на текущий уровень громкости"
+    slider_music.set_value(manager.music_volume * 100)
+    slider_sounds.set_value(manager.sounds_volume * 100)
+
+    box = thorpy.Box(elements=[button_stop, slider_music, slider_sounds])
+
+    reaction = thorpy.Reaction(reacts_to=thorpy.constants.THORPY_EVENT, reac_func=slider_reaction,
+                               event_args={"id": thorpy.constants.EVENT_SLIDE},
+                               params={"slider_sounds": slider_sounds, "slider_music": slider_music},
+                               reac_name="my reaction to slide event")
+
+    box.add_reaction(reaction)
     menu = thorpy.Menu(box)
+
     for element in menu.get_population():
         element.surface = screen
 
-    box.set_topleft((300, topleft))
+    box.set_topleft((300, 400))
     box.blit()
     box.update()
+
     return menu, box
 
+
 def quit(event):
-    "Проверяет, не нужно ли выйти из pygame"
+    """Проверяет, не является ли событие "event" выходом из pygame"""
     if event.type == pygame.QUIT:
         manager.finished = True
+
+
+def stop_options():
+    """Функция для кнопки "Main Menu в options, осуществляющая возвращение в главное меню"""
+    manager.options = False
+    manager.stop = True

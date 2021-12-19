@@ -16,7 +16,8 @@ FONT = pygame.font.Font(None, 32)
 
 
 def start():
-    "Создание поля, шипов, игроков в начале игры"
+    """Создание поля, шипов, игроков в начале игры"""
+
     global field, spike, Player1, Player2
     field = Field()
     spike = Spike()
@@ -27,7 +28,8 @@ def start():
 
 
 def restart():
-    "Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"
+    """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
+
     global field, spike, Player1, Player2
     field = Field()
     spike = Spike()
@@ -73,9 +75,9 @@ def tick(dt, controls):
 
 
 class InputBox:
-    "Класс окна ввода игроком текста; x, y - координаты левого верхнего угла окна, w - ширина, h - высота"
+    """Класс окна ввода игроком текста; x, y - координаты левого верхнего угла окна, w - ширина, h - высота"""
     def __init__(self, x, y, w, h, text=''):
-        "Создание основных параметров окна"
+        """Создание основных параметров окна"""
         self.FONT = pygame.font.Font(None, 50)
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
@@ -84,7 +86,7 @@ class InputBox:
         self.active = False
 
     def handle_event(self, event, Player_number, input_type):
-        "Обработка событий, связанных с окном"
+        """Обработка событий, связанных с окном"""
         if event.type == pygame.MOUSEBUTTONDOWN:
             "Если игрок щёлкнул по окну"
             if self.rect.collidepoint(event.pos):
@@ -121,7 +123,7 @@ class InputBox:
                 self.txt_surface = FONT.render(self.text, True, self.color)
 
     def update(self):
-        "Удлиняет окно если текст слишком длинный"
+        """Удлиняет окно если текст слишком длинный"""
         width = max(200, self.txt_surface.get_width()+10)
         self.rect.w = width
 
@@ -135,7 +137,8 @@ class InputBox:
 
 class Manager:
     """
-    Класс, изменение параметров которого влечёт переключение между режимами игры (меню, собственно игры, паузы, положения между раундами
+    Класс, изменение параметров которого влечёт переключение между режимами
+    игры (меню, собственно игры, паузы, положения между раундами
     """
 
     def __init__(self):
@@ -151,14 +154,15 @@ class Manager:
         self.dt = 0
         self.music = 'play'
         self.activate_sound = False
-        self.music_volume = 0.2
+        self.music_volume = 0.5
         self.options = False
         self.sounds_volume = 0.5
+        self.activ_sound = pygame.mixer.Sound('activatesound.wav')
 
 
 
 class Button:
-    "Класс кнопки меню; j - координата по вертикали, name - текст внутри кнопки"
+    """Класс кнопки меню; j - координата по вертикали, name - текст внутри кнопки"""
     def __init__(self, j, name):
         self.coords1 = (400, j)
         self.coords2 = (650, j)
@@ -168,19 +172,22 @@ class Button:
         self.color = GREEN
 
     def pressed(self, mouse_coords, coords1, coords3):
-        "Определяет, наведена ли мышь на кнопку"
+        """Определяет, наведена ли мышь на кнопку"""
+
         if coords1[0] < mouse_coords[0] < coords3[0] and coords1[1] < mouse_coords[1] < coords3[1]:
             return True
         else:
             return False
 
     def change_color(self, mouse_coords, coords1, coords3):
+        """Изменение цвета активированной кнопки"""
         if self.pressed(mouse_coords, coords1, coords3):
             self.color = BLUE
         else:
             self.color = GREEN
 
     def image_button(screen, coords1, coords2, coords3, coords4, name, color):
+        """Отображение кнопки"""
         pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
         pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
         text_surf = pygame.font.Font(None, 60)
@@ -188,13 +195,13 @@ class Button:
         screen.blit(button_text, coords1)
 
     def buttons_view(buttons, screen):
+        """Комбинация операций отображения кнопок и их окраски"""
         mouse_coords = pygame.mouse.get_pos()
         for button in buttons:
             button.change_color(mouse_coords, button.coords1, button.coords3)
-            Button.image_button(screen, button.coords1, button.coords2, button.coords3, button.coords4, button.text,
-                         button.color)
+            Button.image_button(screen, button.coords1, button.coords2,
+                                button.coords3, button.coords4, button.text, button.color)
         pygame.display.update()
-
 
 
 class StarPowerUp:
@@ -203,7 +210,8 @@ class StarPowerUp:
         self.xc = random.randint(200, 800)
         self.yc = random.randint(200, 800)
         self.r = 30
-        self.a = math.sqrt(2 * self.r**2 - 2 * self.r ** 2 * math.cos(72/180 * math.pi)) * 1/2 / math.sin(27 / 180 * math.pi)
+        self.a = math.sqrt(2 * self.r ** 2 - 2 * self.r ** 2 * math.cos(72/180 * math.pi)) * 1/2 / \
+            math.sin(27 / 180 * math.pi)
         self.d = math.sqrt(self.a ** 2 + self.r ** 2 - 2 * self.r * self.a * math.cos(18 / 180 * math.pi))
         self.x1 = self.xc
         self.y1 = self.yc - self.r
@@ -225,8 +233,9 @@ class StarPowerUp:
         self.y9 = self.yc - self.r * math.cos(72 / 180 * math.pi)
         self.x10 = self.xc - self.d * math.sin(36 / 180 * math.pi)
         self.y10 = self.yc - self.d * math.cos(36 / 180 * math.pi)
-        self.drawdata = [[self.x2, self.y2], [self.x3, self.y3], [self.x4, self.y4], [self.x5, self.y5], [self.x6, self.y6],
-                         [self.x7, self.y7], [self.x8, self.y8], [self.x9, self.y9], [self.x10, self.y10], [self.x1, self.y1]]
+        self.drawdata = [[self.x2, self.y2], [self.x3, self.y3], [self.x4, self.y4], [self.x5, self.y5],
+                         [self.x6, self.y6], [self.x7, self.y7], [self.x8, self.y8], [self.x9, self.y9],
+                         [self.x10, self.y10], [self.x1, self.y1]]
         self.color = [255, 255, 39]
 
     def pickup(self, player, dt):

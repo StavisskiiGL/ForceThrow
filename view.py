@@ -26,10 +26,6 @@ class Drawer:
                 pygame.draw.line(self.screen, WHITE, (x + r * math.cos(angle), y + r * math.sin(angle)),
                                  (x + r * math.sin(angle), y - r * math.cos(angle)), 4)
 
-    def update_options(self, space):
-
-        space.blit()
-        space.update()
 
 def display_player(screen, player):
     pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
@@ -37,6 +33,6 @@ def display_player(screen, player):
 
 def draw_score(screen, player1, player2):
     input_surf = pygame.font.Font(None, 60)
-    input_text = input_surf.render(player1.name + ' ' + str(player1.wins) + '-' + str(player2.wins) + ' ' + player2.name
-                                   , True, [255, 0, 0])
+    input_text = input_surf.render(player1.name + ' ' + str(player1.wins) + '-' + str(player2.wins) + ' ' +
+                                   player2.name, True, [255, 0, 0])
     screen.blit(input_text, (150, 150))
