@@ -18,60 +18,61 @@ FONT = pygame.font.Font(None, 32)
 def start():
     """Создание поля, шипов, игроков в начале игры"""
 
-    global field, spike, Player1, Player2
-    field = Field()
+    global spike
+    manager.field = Field()
     spike = Spike()
-    Player1 = Player(400, 800)
-    Player2 = Player(800, 800)
-    Player1.wins = 0
-    Player2.wins = 0
+    manager.Player1 = Player(400, 800)
+    manager.Player2 = Player(800, 800)
+    manager.Player1.wins = 0
+    manager.Player2.wins = 0
 
 
 def restart():
     """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
 
-    global field, spike, Player1, Player2
-    field = Field()
+    global spike
+    manager.field = Field()
     spike = Spike()
-    Player1.restart_parameters(400, 800)
-    Player2.restart_parameters(800, 800)
+    manager.Player1.restart_parameters(400, 800)
+    manager.Player2.restart_parameters(800, 800)
 
 
 def tick(dt, controls):
-    global Player1, Player2, spike, field, objects, star, dtstar
+    global objects, star, dtstar
+
     if dtstar == FPS * 20:
         objects[0] = StarPowerUp()
         star = True
         dtstar = -FPS * 10
     dt += 1
     dtstar += 1
-    collide(Player1, Player2)
-    Player1.wall()
-    Player2.wall()
-    collide(Player1, Player2)
-    Player1.death()
-    Player2.death()
-    collide(Player1, Player2)
-    Player1.move()
-    Player2.move()
-    collide(Player1, Player2)
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.wall()
+    manager.Player2.wall()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.death()
+    manager.Player2.death()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.move()
+    manager.Player2.move()
+    collide(manager.Player1, manager.Player2)
     if star:
-        objects[0].pickup(Player1, dt)
-        objects[0].pickup(Player2, dt)
-    if Player1.invincible:
-        Player1.star(dt)
-    if Player2.invincible:
-        Player2.star(dt)
-    Player1.death()
-    Player2.death()
-    collide(Player1, Player2)
-    Player1.wall()
-    Player2.wall()
-    collide(Player1, Player2)
-    Player1.newton(dt, [controls[0], controls[1]])
-    Player2.newton(dt, [controls[2], controls[3]])
-    collide(Player1, Player2)
-    return Player1, Player2, spike, field, dt, objects
+        objects[0].pickup(manager.Player1, dt)
+        objects[0].pickup(manager.Player2, dt)
+    if manager.Player1.invincible:
+        manager.Player1.star(dt)
+    if manager.Player2.invincible:
+        manager.Player2.star(dt)
+    manager.Player1.death()
+    manager.Player2.death()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.wall()
+    manager.Player2.wall()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.newton(dt, [controls[0], controls[1]])
+    manager.Player2.newton(dt, [controls[2], controls[3]])
+    collide(manager.Player1, manager.Player2)
+    return manager.Player1, manager.Player2, spike, manager.field, dt, objects
 
 
 class InputBox:
@@ -102,14 +103,14 @@ class InputBox:
                     "Присвоение игрокам введённых имён"
                     if input_type == 'Name':
                         if Player_number == 1:
-                            Player1.get_a_name(self.text)
+                            manager.Player1.get_a_name(self.text)
                         elif Player_number == 2:
-                            Player2.get_a_name(self.text)
+                            manager.Player2.get_a_name(self.text)
                     elif input_type == 'Colour':
                         if Player_number == 1:
-                            Player1.get_a_colour(self.text)
+                            manager.Player1.get_a_colour(self.text)
                         elif Player_number == 2:
-                            Player2.get_a_colour(self.text)
+                            manager.Player2.get_a_colour(self.text)
 
                     self.text = ''
                     screen.fill((0, 0, 0))
@@ -135,10 +136,12 @@ class InputBox:
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
 
-class Manager:
+class Big_Manager:
     """
     Класс, изменение параметров которого влечёт переключение между режимами
-    игры (меню, собственно игры, паузы, положения между раундами
+    игры (меню, собственно игры, паузы, положения между раундами); кроме того, на него ссылаются при необходимости
+    узнать/изменить параметры объектов: Player1, Player2, field, spikes, или узнать/изменить громкости музыки и звуков.
+    self.activate_sound - определяет, должен ли прозвучать звук нажатия кнопки.
     """
 
     def __init__(self):
@@ -158,7 +161,10 @@ class Manager:
         self.options = False
         self.sounds_volume = 0.5
         self.activ_sound = pygame.mixer.Sound('activatesound.wav')
-
+        self.field = 0
+        self.Player1 = 0
+        self.Player2 = 0
+        self.spikes = []
 
 
 class Button:
@@ -300,7 +306,7 @@ class Player:
         self.vy += self.ay
 
     def newton(self, dt, controls):
-        temp = field.engagement(self.mass, self.x, self.y, dt)
+        temp = manager.field.engagement(self.mass, self.x, self.y, dt)
         self.ax = temp[0] + controls[0]
         self.ay = temp[1] + controls[1]
 
@@ -458,3 +464,4 @@ def collide(player1, player2):
         player2.vy = v2y_true
 
 
+manager = Big_Manager()

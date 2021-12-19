@@ -1,6 +1,6 @@
 import pygame
 import keyboard
-from model import tick, Button, start, InputBox, screen, restart, Manager
+from model import tick, Button, start, InputBox, screen, restart, manager
 from view import *
 from colors import BLACK, RED, GREEN, BLUE, ORANGE
 from soundtrack import sounds_control, music_control
@@ -8,13 +8,9 @@ import thorpy
 import numpy as np
 import time
 
-Player1 = 0
-Player2 = 0
-
 clock = pygame.time.Clock()
 pygame.display.update()
 field_drawer = Drawer(screen)
-manager = Manager()
 drawer = Drawer(screen)
 
 
@@ -67,16 +63,15 @@ def controller():
 def main_cycle():
     """Основной цикл: управление объектами во время игры"""
 
-    global Player1, Player2
     clock.tick(FPS)
     p1x, p1y = init_operate_p1()
     p2x, p2y = init_operate_p2()
     controls = [p1x, p1y, p2x, p2y]
     Player1, Player2, spike, field, manager.dt, objects = tick(manager.dt, controls)
     field_drawer.update(field, manager.dt)
-    display_player(screen, Player1)
+    display_player(screen, manager.Player1)
     display_player(screen, Player2)
-    draw_score(screen, Player1, Player2)
+    draw_score(screen, manager.Player1, manager.Player2)
 
     if type(objects[0]) != type(1):
         print(objects[0])
@@ -263,7 +258,7 @@ def get_over(player1, player2):
         screen.blit(over_text, (250, 150))
 
         score_surf = pygame.font.Font(None, 150)
-        score_text = score_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, BLUE)
+        score_text = score_surf.render('Score:' + str(player1.wins) + '-' + str(player2.wins), True, BLUE)
         screen.blit(score_text, (260, 250))
 
         result_surf = pygame.font.Font(None, 75)
@@ -286,15 +281,14 @@ def get_over(player1, player2):
         Button.buttons_view(buttons, screen)
 
         over_surf = pygame.font.Font(None, 150)
-        over_text = over_surf.render('Score:' + str(Player1.wins) + '-' + str(Player2.wins), True, RED)
+        over_text = over_surf.render('Score:' + str(player1.wins) + '-' + str(player2.wins), True, RED)
         screen.blit(over_text, (240, 250))
         result_surf = pygame.font.Font(None, 75)
 
-        if not Player1.live:
-            result_text = result_surf.render(Player2.name + ' ' + 'has won in this round!', True, ORANGE)
+        if not player1.live:
+            result_text = result_surf.render(player2.name + ' ' + 'has won in this round!', True, ORANGE)
         else:
-            result_text = result_surf.render(Player1.name + ' ' + 'has won in this round!', True, ORANGE)
-
+            result_text = result_surf.render(player1.name + ' ' + 'has won in this round!', True, ORANGE)
         screen.blit(result_text, (175, 400))
         pygame.display.update()
 
@@ -404,18 +398,6 @@ def game_break_control():
             Button.buttons_view(buttons, screen)
 
 
-def slider_reaction(event, slider_music, slider_sounds):
-    """Преобразует установленные на слайдерах значения в значения уровней громкости музыки и звуков"""
-
-    if event.el == slider_music:
-        new_volume = event.el.get_value() * 0.01
-        manager.music_volume = new_volume
-    elif event.el == slider_sounds:
-        new_volume = event.el.get_value() * 0.01
-        manager.sounds_volume = new_volume
-        sounds_control(manager)
-
-
 def options_control(screen):
     """Реагирует на действия игрока при переходе в раздел меню "options"
     """
@@ -443,11 +425,27 @@ def options_control(screen):
     get_menu()
 
 
+def slider_reaction(event, slider_music, slider_sounds):
+    """Преобразует установленные на слайдерах значения в значения уровней громкости музыки и звуков"""
+
+    if event.el == slider_music:
+        new_volume = event.el.get_value() * 0.01
+        manager.music_volume = new_volume
+    elif event.el == slider_sounds:
+        new_volume = event.el.get_value() * 0.01
+        manager.sounds_volume = new_volume
+        sounds_control(manager)
+
+
 def init_box():
     """Создаёт слайдера контроля громкости музыки и звуков, кнопку возвращения в главное меню,
     описывает реакцию на связанные с ними действия игрока"""
 
-    button_stop = thorpy.make_button("Quit", func=stop_options)
+    button_stop = thorpy.make_button("Main Menu", func=stop_options)
+    button_stop.set_main_color((0, 255, 0))
+    button_stop.set_size((300, 75))
+    button_stop.set_font_size(40)
+
     slider_music = thorpy.SliderX(length=400, limvals=(0, 100), text="Music:", type_=int)
     slider_sounds = thorpy.SliderX(length=400, limvals=(0, 100), text="Sounds:", type_=int)
 
