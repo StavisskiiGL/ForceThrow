@@ -9,8 +9,11 @@ from colors import *
 screen = pygame.display.set_mode((1024, 1024))
 FPS = 30
 star = False
+sans = False
+sans_picked_up = False
 objects = [0, 0, 0]
 dtstar = 0
+dtsans = 0
 pygame.init()
 FONT = pygame.font.Font(None, 32)
 
@@ -30,22 +33,30 @@ def start():
 def restart():
     """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
 
-    global spike
+    global spike, sans, sans_picked_up
     manager.field = Field()
     spike = Spike()
+    sans = False
+    sans_picked_up = False
     manager.Player1.restart_parameters(400, 800)
     manager.Player2.restart_parameters(800, 800)
 
 
 def tick(dt, controls):
-    global objects, star, dtstar
+    global objects, star, dtstar, sans, dtsans
 
     if dtstar == FPS * 20:
         objects[0] = StarPowerUp()
         star = True
         dtstar = -FPS * 10
+
+    if dtsans == FPS * 20:
+        objects[1] = Sans()
+        sans = True
+        dtsans = -FPS * 10
     dt += 1
     dtstar += 1
+    dtsans += 1
     collide(manager.Player1, manager.Player2)
     manager.Player1.wall()
     manager.Player2.wall()
@@ -63,14 +74,21 @@ def tick(dt, controls):
         manager.Player1.star(dt)
     if manager.Player2.invincible:
         manager.Player2.star(dt)
+    if sans:
+        objects[1].pickup(manager.Player1, dt)
+        objects[1].pickup(manager.Player2, dt)
+    if manager.Player1.immovable:
+        manager.Player1.sans(dt)
+    if manager.Player2.immovable:
+        manager.Player2.sans(dt)
     manager.Player1.death()
     manager.Player2.death()
     collide(manager.Player1, manager.Player2)
     manager.Player1.wall()
     manager.Player2.wall()
     collide(manager.Player1, manager.Player2)
-    manager.Player1.newton(dt, [controls[0], controls[1]])
-    manager.Player2.newton(dt, [controls[2], controls[3]])
+    manager.Player1.newton(dt, [controls[0], controls[1]], [controls[2], controls[3]])
+    manager.Player2.newton(dt, [controls[2], controls[3]], [controls[0], controls[1]])
     collide(manager.Player1, manager.Player2)
     return manager.Player1, manager.Player2, spike, manager.field, dt, objects
 
@@ -256,6 +274,7 @@ class Player:
     """
     def __init__(self, xcord, ycord):
         self.invincible = False
+        self.immovable = False
         self.live = True
         self.mass = 1
         self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
@@ -300,15 +319,21 @@ class Player:
         self.t0 = 0
 
     def move(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.vx += self.ax
-        self.vy += self.ay
+        if not self.immovable:
+            self.x += self.vx
+            self.y += self.vy
+            self.vx += self.ax
+            self.vy += self.ay
 
-    def newton(self, dt, controls):
-        temp = manager.field.engagement(self.mass, self.x, self.y, dt)
-        self.ax = temp[0] + controls[0]
-        self.ay = temp[1] + controls[1]
+    def newton(self, dt, controls, sans_controls):
+        global sans_picked_up
+        if not sans_picked_up:
+            temp = manager.field.engagement(self.mass, int(self.x), int(self.y), dt)
+            self.ax = temp[0] + controls[0]
+            self.ay = temp[1] + controls[1]
+        elif not self.immovable:
+            self.ax = sans_controls[0] * 10
+            self.ay = sans_controls[1] * 10
 
     def wall(self):
         if self.x - self.size < 0:
@@ -348,6 +373,35 @@ class Player:
             self.color = self.tempcolor
             objects[0] = 0
             star = False
+
+    def sans(self, dt):
+        global sans, sans_picked_up
+        if not self.immovable:
+            self.t0 = dt
+        self.immovable = True
+        if dt - self.t0 >= FPS * 10:
+            self.immovable = False
+            objects[1] = 1
+            sans = False
+            sans_picked_up = False
+
+
+class Sans:
+    """
+    Тип данных, отвечающий за усиление "SANS"
+    """
+    def __init__(self):
+        self.used = False
+        self.x = random.randint(200, 800)
+        self.y = random.randint(200, 800)
+        self.r = 80
+
+    def pickup(self, player, dt):
+        global sans_picked_up
+        if math.sqrt((player.x - self.x) ** 2 + (player.y - self.y) ** 2) <= player.size + self.r and not self.used:
+            player.sans(dt)
+            self.used = True
+            sans_picked_up = True
 
 
 class Field:
@@ -436,6 +490,8 @@ class Spike:
 
 def collide(player1, player2):
     if math.sqrt((player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2) <= player1.size + player2.size:
+        if player1.immovable or player2.immovable:
+            return
         if player1.invincible:
             player2.stardeath()
             return

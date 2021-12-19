@@ -79,6 +79,13 @@ def main_cycle():
             pygame.draw.polygon(screen, objects[0].color, objects[0].drawdata)
     pygame.draw.polygon(screen, [255, 255, 255],
                         [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
+
+    if type(objects[1]) != type(1):
+        if not objects[1].used:
+            sans_image = pygame.image.load("Sans.png").convert_alpha()
+            sans_image = pygame.transform.scale(sans_image, (objects[1].r, objects[1].r))
+            screen.blit(sans_image, (objects[1].x, objects[1].y))
+
     pygame.display.update()
 
     "Переход к окончанию игры в зависимости от числа очков"
@@ -122,12 +129,14 @@ def init_operate_p2():
 
 def menu():
     """Реакция на действия игрока в режиме меню"""
-
+    menu_image = pygame.image.load("Menu.png").convert_alpha()
+    menu_image = pygame.transform.scale(menu_image, (1000, 1125))
+    screen.blit(menu_image, (0, 0))
     "Создание кнопок"
-    button_load = Button(300, 'Сontinue')
-    button_play = Button(400, 'New Game')
-    button_options = Button(500, 'Options')
-    button_exit = Button(600, 'Exit')
+    button_load = Button(100, 'Сontinue')
+    button_play = Button(200, 'New Game')
+    button_options = Button(300, 'Options')
+    button_exit = Button(400, 'Exit')
     buttons = [button_load, button_play, button_options, button_exit]
 
     "Обработка событий"
@@ -212,7 +221,7 @@ def name_control():
                     input1 = 5
                     manager.finished = True
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN and input_box1.active:
                         input1 += 1
             "Обновление состояния окошка"
             input_box1.update()
@@ -248,33 +257,30 @@ def get_over(player1, player2):
         manager.game_over = True
         manager.game_over_counter += 1
         manager.play = False
+        demotivator_image = pygame.image.load("Demotivator.png").convert_alpha()
+        demotivator_image = pygame.transform.scale(demotivator_image, (700, 600))
+        screen.blit(demotivator_image, (150, 0))
         button_end = Button(625, 'Main Menu')
         button_play_again = Button(725, 'Play again')
         buttons = [button_end, button_play_again]
         Button.buttons_view(buttons, screen)
         "Создание надписей"
-        over_surf = pygame.font.Font(None, 150)
-        over_text = over_surf.render('Game Over', True, RED)
-        screen.blit(over_text, (250, 150))
-
-        score_surf = pygame.font.Font(None, 150)
+        score_surf = pygame.font.Font(None, 75)
         score_text = score_surf.render('Score:' + str(player1.wins) + '-' + str(player2.wins), True, BLUE)
-        screen.blit(score_text, (260, 250))
-
-        result_surf = pygame.font.Font(None, 75)
-
+        screen.blit(score_text, (100, 700))
         if player1.wins == 3:
-            result_text = result_surf.render(player1.name + ' ' + 'has won in this game!', True, ORANGE)
+            winner_color = player1.color
         else:
-            result_text = result_surf.render(player2.name + ' ' + 'has won in this game!', True, ORANGE)
-
-        screen.blit(result_text, (150, 400))
+            winner_color = player2.color
+        pygame.draw.circle(screen, winner_color, [500, 170], 50)
         pygame.display.update()
 
     else:
         manager.game_break = True
         manager.play = False
-
+        round_image = pygame.image.load("ScreenBetweenTheRounds.png").convert_alpha()
+        round_image = pygame.transform.scale(round_image, (1000, 800))
+        screen.blit(round_image, (0, 100))
         button_next_round = Button(525, 'Next round')
         button_main_menu = Button(625, 'Main Menu')
         buttons = [button_next_round, button_main_menu]
@@ -295,10 +301,13 @@ def get_over(player1, player2):
 
 def get_menu():
     """Отображение кнопок при переходе в режим меню"""
-    button_load = Button(300, 'Сontinue')
-    button_play = Button(400, 'New Game')
-    button_options = Button(500, 'Options')
-    button_exit = Button(600, 'Exit')
+    menu_image = pygame.image.load("Menu.png").convert_alpha()
+    menu_image = pygame.transform.scale(menu_image, (1000, 1125))
+    screen.blit(menu_image, (0, 0))
+    button_load = Button(100, 'Сontinue')
+    button_play = Button(200, 'New Game')
+    button_options = Button(300, 'Options')
+    button_exit = Button(400, 'Exit')
     buttons = [button_load, button_play, button_options, button_exit]
     Button.buttons_view(buttons, screen)
 
