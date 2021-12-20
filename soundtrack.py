@@ -1,6 +1,7 @@
 import pygame
 
 class Volume_control():
+    """Класс, отвечающий за воспроизведение музыки и звуков, установление уровня громкости"""
     def __init__(self):
         self.music = 'play'
         self.activate_sound = False
@@ -9,7 +10,8 @@ class Volume_control():
         self.activ_sound = pygame.mixer.Sound('activatesound.wav')
 
     def music_control(self, manager):
-        """Управляет переключением музыки в зависимости от нахождения в меню или игре"""
+        """Управляет переключением музыки в зависимости от нахождения в меню или игре, а также
+        установлением уровня громкости музыки в настройках"""
 
         if manager.stop:
             if self.music != 'menu':
@@ -35,6 +37,8 @@ class Volume_control():
             pygame.mixer.music.set_volume(self.music_volume)
 
     def sounds_control(self, manager):
+        """Управляет воспроизведением звуков нажатия на кнопкки, а также
+        установлением уровня громкости звуков в настройках"""
         if self.activate_sound:
             pygame.mixer.Sound.play(self.activ_sound)
             self.activate_sound = False
