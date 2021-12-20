@@ -5,12 +5,6 @@ from colors import *
 
 screen = pygame.display.set_mode((1024, 1024))
 FPS = 30
-star = False
-sans = False
-sans_picked_up = False
-objects = [0, 0, 0]
-dtstar = 0
-dtsans = 0
 pygame.init()
 
 
@@ -79,8 +73,12 @@ class Big_Manager:
     """
     Класс, изменение параметров которого влечёт переключение между режимами
     игры (меню, собственно игры, паузы, положения между раундами); кроме того, на него ссылаются при необходимости
-    узнать/изменить параметры объектов: Player1, Player2, field, spikes, или узнать/изменить громкости музыки и звуков.
-    self.activate_sound - определяет, должен ли прозвучать звук нажатия кнопки.
+    узнать/изменить параметры объектов: Player1, Player2, field, spikes
+    activate_sound - определяет, должен ли прозвучать звук нажатия кнопки.
+    play, finished, pause, game_over, stop, not_started, game_break, game_break_counter, game_over_counter -
+    отвечают за переключение функций модуля controller.
+    field, Player1, Player2, star, sans, sans_picked_up, dtstar, dtsans, objects, spikes -
+    содержат данные об основных объектах игры: поле, игроки, звезда, шипы
     """
 
     def __init__(self):
@@ -99,6 +97,133 @@ class Big_Manager:
         self.Player1 = Player(400, 800)
         self.Player2 = Player(800, 800)
         self.FONT = pygame.font.Font(None, 32)
+        self.star = False
+        self.sans = False
+        self.sans_picked_up = False
+        self.dtstar = 0
+        self.dtsans = 0
+        self.objects = [0, 0, 0]
+        self.spikes = []
+
+    def start(self):
+        """Создание поля, шипов, игроков в начале игры"""
+
+        self.field = Field()
+        self.Player1 = Player(400, 800)
+        self.Player2 = Player(800, 800)
+        self.Player1.wins = 0
+        self.Player2.wins = 0
+        self.sans = False
+        self.sans_picked_up = False
+        self.objects = [0, 0, 0]
+        self.star = False
+        self.dtstar = 0
+        self.dtsans = 0
+        spike1 = Spike()
+        spike2 = Spike()
+        spike3 = Spike()
+        self.spikes = [spike1, spike2, spike3]
+
+    def restart(self):
+        """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
+
+        self.field = Field()
+        spike1 = Spike()
+        spike2 = Spike()
+        spike3 = Spike()
+        self.spikes = [spike1, spike2, spike3]
+        self.Player1.restart_parameters(400, 800)
+        self.Player2.restart_parameters(800, 800)
+
+    def tick(self, controls):
+        """Основная функция, возвращающая состояние игроков, поля шипов и бонусов в каждый момент игры"""
+        if self.dtstar == FPS * 12:
+            self.objects[0] = StarPowerUp()
+            self.star = True
+            self.dtstar = -FPS * 6
+
+        if self.dtsans == FPS * 14:
+            self.objects[1] = Sans()
+            self.sans = True
+            self.dtsans = -FPS * 7
+        self.dt += 1
+        self.dtstar += 1
+        self.dtsans += 1
+        self.collide()
+        self.Player1.wall()
+        self.Player2.wall()
+        self.collide()
+        for i in self.spikes:
+            self.Player1.death(i)
+            self.Player2.death(i)
+            if not self.Player1.live:
+                self.Player1.dead = True
+                self.Player1.live = True
+            if not self.Player2.live:
+                self.Player2.dead = True
+                self.Player2.live = True
+
+        self.collide()
+        self.Player1.move()
+        self.Player2.move()
+        self.collide()
+        if self.star:
+            self.objects[0].pickup(self.Player1, self.dt)
+            self.objects[0].pickup(self.Player2, self.dt)
+        if self.Player1.invincible:
+            self.Player1.star(self.dt)
+        if self.Player2.invincible:
+            self.Player2.star(self.dt)
+        if self.sans:
+            self.objects[1].pickup(self.Player1, self.dt)
+            self.objects[1].pickup(self.Player2, self.dt)
+        if self.Player1.immovable:
+            self.Player1.sans(self.dt)
+        if self.Player2.immovable:
+            self.Player2.sans(self.dt)
+        for i in self.spikes:
+            self.Player1.death(i)
+            self.Player2.death(i)
+        self.collide()
+        self.Player1.wall()
+        self.Player2.wall()
+        self.collide()
+        self.Player1.newton(self.dt, [controls[0], controls[1]], [controls[2], controls[3]])
+        self.Player2.newton(self.dt, [controls[2], controls[3]], [controls[0], controls[1]])
+        self.collide()
+        return self.Player1, self.Player2, self.spikes, self.field, self.dt, self.objects
+
+    def collide(self):
+        """Определяет результат столкновения между игроками"""
+        if math.sqrt((self.Player1.x - self.Player2.x) ** 2 + (self.Player1.y - self.Player2.y) ** 2) <= self.Player1.size + self.Player2.size:
+            if self.Player1.immovable or self.Player2.immovable:
+                return
+            if self.Player1.invincible:
+                self.Player2.stardeath()
+                return
+            if self.Player2.invincible:
+                self.Player1.stardeath()
+                return
+            m1 = self.Player1.mass
+            m2 = self.Player2.mass
+            v1x = self.Player1.vx
+            v1y = self.Player1.vy
+            v2x = self.Player2.vx
+            v2y = self.Player2.vy
+            vx_cm = (m1 * v1x + m2 * v2x) / (m1 + m2)
+            vy_cm = (m1 * v1y + m2 * v2y) / (m1 + m2)
+            v1x_cm = v1x - vx_cm
+            v1y_cm = v1y - vy_cm
+            v2x_cm = v2x - vx_cm
+            v2y_cm = v2y - vy_cm
+            v1x_true = -v1x_cm + vx_cm
+            v1y_true = -v1y_cm + vy_cm
+            v2x_true = -v2x_cm + vx_cm
+            v2y_true = -v2y_cm + vy_cm
+            self.Player1.vx = v1x_true
+            self.Player1.vy = v1y_true
+            self.Player2.vx = v2x_true
+            self.Player2.vy = v2y_true
 
 
 class Button:
@@ -126,17 +251,11 @@ class Button:
         else:
             self.color = GREEN
 
-    def image_button(self, screen, coords1, coords2, coords3, coords4, name, color):
-        """Отображение кнопки"""
-        pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
-        pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
-        text_surf = pygame.font.Font(None, 60)
-        button_text = text_surf.render(name, True, (0, 0, 0))
-        screen.blit(button_text, coords1)
-
 
 class StarPowerUp:
+    """Класс звезды - усиления игры"""
     def __init__(self):
+        """Создание геометрических характеристик звезды, определение её положения и цвета"""
         self.used = False
         self.xc = random.randint(200, 800)
         self.yc = random.randint(200, 800)
@@ -170,6 +289,7 @@ class StarPowerUp:
         self.color = [255, 255, 39]
 
     def pickup(self, player, dt):
+        """Функция, регистрирующая использование звезды"""
         if math.sqrt((player.x - self.xc) ** 2 + (player.y - self.yc) ** 2) <= player.size + self.r and not self.used:
             player.star(dt)
             self.used = True
@@ -178,6 +298,8 @@ class StarPowerUp:
 class Player:
     """
     Тип данных, описывающий одного из игроков
+    x, y - координаты, vx, vy, ax, ay - составляющие скорости и ускорения по осям x и y
+    mass - масса, wins - количество побед, dead - мёртв или нет, name - имя, color - цвет
     """
     def __init__(self, xcord, ycord):
         self.invincible = False
@@ -197,11 +319,14 @@ class Player:
         self.t0 = 0
         self.name = 'Someone'
         self.wins = 0
+        self.dead = False
 
     def get_a_name(self, name):
+        """Присвоение имени игроку"""
         self.name = name
 
     def get_a_colour(self, color):
+        """Присвоение цвета игроку"""
         if color == 'Red':
             self.color = colors.RED
         elif color == 'Green':
@@ -218,6 +343,7 @@ class Player:
             self.color = [random.randint(50, 255), random.randint(50, 255), random.randint(50, 255)]
 
     def restart_parameters(self, xcord, ycord):
+        """Возвращение к исходному состоянию при окончании раунда"""
         self.x = xcord
         self.y = ycord
         self.vx = 0
@@ -226,8 +352,10 @@ class Player:
         self.ay = 0
         self.t = 0
         self.t0 = 0
+        self.dead = False
 
     def move(self):
+        """Перемещение игрока"""
         if not self.immovable:
             self.x += self.vx
             self.y += self.vy
@@ -235,8 +363,8 @@ class Player:
             self.vy += self.ay
 
     def newton(self, dt, controls, sans_controls):
-        global sans_picked_up
-        if not sans_picked_up:
+        """Воздействие на игрока силового поля"""
+        if not manager.sans_picked_up:
             temp = manager.field.engagement(self.mass, int(self.x), int(self.y), dt)
             self.ax = temp[0] + controls[0]
             self.ay = temp[1] + controls[1]
@@ -245,6 +373,7 @@ class Player:
             self.ay = sans_controls[1] * 10
 
     def wall(self):
+        """Столкновение игрока со стеной"""
         if self.x - self.size < 0:
             self.vx = -self.vx * 0.6
             self.x = self.size
@@ -258,41 +387,42 @@ class Player:
             self.vy = -self.vy * 0.6
             self.y = 1024 - self.size
 
-    def death(self):
-        global spike
+    def death(self, spike):
+        """Регистрация попадания на шип"""
         self.live = not spike.penetration(self)
 
     def stardeath(self):
+        """Смерть от контакта с противником, взявшим бонус"""
         self.live = False
 
     def star(self, dt=1):
-        global star
+        """Взаимодействие со звездой"""
         if not self.invincible:
             self.tempcolor = self.color
             self.t0 = dt
         self.invincible = True
         if not self.t:
-            self.t += 10
+            self.t += 6
             return
         if dt % self.t:
             self.color = [random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)]
-            self.t += 10
-        if dt - self.t0 >= FPS * 10:
+            self.t += 6
+        if dt - self.t0 >= FPS * 6:
             self.invincible = False
             self.color = self.tempcolor
-            objects[0] = 0
-            star = False
+            manager.objects[0] = 0
+            manager.star = False
 
     def sans(self, dt):
-        global sans, sans_picked_up
+        """Взаимодействие с объектом класса Sans"""
         if not self.immovable:
             self.t0 = dt
         self.immovable = True
-        if dt - self.t0 >= FPS * 10:
+        if dt - self.t0 >= FPS * 7:
             self.immovable = False
-            objects[1] = 1
-            sans = False
-            sans_picked_up = False
+            manager.objects[1] = 1
+            manager.sans = False
+            manager.sans_picked_up = False
 
 
 class Sans:
@@ -306,11 +436,11 @@ class Sans:
         self.r = 80
 
     def pickup(self, player, dt):
-        global sans_picked_up
+        """Контакт игрока c Sans"""
         if math.sqrt((player.x - self.x) ** 2 + (player.y - self.y) ** 2) <= player.size + self.r and not self.used:
             player.sans(dt)
             self.used = True
-            sans_picked_up = True
+            manager.sans_picked_up = True
 
 
 class Field:
@@ -318,6 +448,7 @@ class Field:
     Тип данных, описывающий свойства и структуру игрового поля
     """
     def evolve(self, x, y, dt):
+        """Вычисление действующей на игрока силы в зависимости от его положения и момента времени"""
         if x == 511 and y > 511:
             xproj = -0.4
             yproj = 0
@@ -355,6 +486,7 @@ class Field:
                -xproj * math.sin(-0.05 * dt) + yproj * math.cos(-0.05 * dt))
 
     def engagement(self, m, x, y, dt):
+        """Воздействие силового поля на игрока"""
         x = round(x)
         y = round(y)
         return [self.evolve(x, y, dt)[0] / m, self.evolve(x, y, dt)[1] / m]
@@ -365,6 +497,7 @@ class Spike:
     Тип данных, отвечающий за взаимодействие игроков с шипами
     """
     def __init__(self):
+        """Создание характеристик шипа: координаты на поле, длины сторон, углы между ними"""
         self.x1 = random.randint(300, 700)
         self.a = 60
         self.x3 = self.x1 + self.a
@@ -376,6 +509,7 @@ class Spike:
         self.b23 = (self.y3 + self.y2 - math.sqrt(3) * (self.x2 + self.x3)) / 2
 
     def penetration(self, player):
+        """Фиксирует столкновение игрока с шипом"""
         if player.invincible:
             return False
         d1 = math.sqrt((player.x - self.x1) ** 2 + (player.y - self.y1) ** 2)
@@ -395,114 +529,6 @@ class Spike:
         if self.y1 >= player.y >= player.x * math.sqrt(3) + self.b23 and player.y >= -player.x * math.sqrt(3) + self.b12:
             return True
         return False
-
-
-def collide(player1, player2):
-
-    if math.sqrt((player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2) <= player1.size + player2.size:
-        if player1.immovable or player2.immovable:
-            return
-        if player1.invincible:
-            player2.stardeath()
-            return
-        if player2.invincible:
-            player1.stardeath()
-            return
-        m1 = player1.mass
-        m2 = player2.mass
-        v1x = player1.vx
-        v1y = player1.vy
-        v2x = player2.vx
-        v2y = player2.vy
-        vx_cm = (m1 * v1x + m2 * v2x) / (m1 + m2)
-        vy_cm = (m1 * v1y + m2 * v2y) / (m1 + m2)
-        v1x_cm = v1x - vx_cm
-        v1y_cm = v1y - vy_cm
-        v2x_cm = v2x - vx_cm
-        v2y_cm = v2y - vy_cm
-        v1x_true = -v1x_cm + vx_cm
-        v1y_true = -v1y_cm + vy_cm
-        v2x_true = -v2x_cm + vx_cm
-        v2y_true = -v2y_cm + vy_cm
-        player1.vx = v1x_true
-        player1.vy = v1y_true
-        player2.vx = v2x_true
-        player2.vy = v2y_true
-
-
-def start():
-    """Создание поля, шипов, игроков в начале игры"""
-
-    global spike
-    manager.field = Field()
-    spike = Spike()
-    manager.Player1 = Player(400, 800)
-    manager.Player2 = Player(800, 800)
-    manager.Player1.wins = 0
-    manager.Player2.wins = 0
-
-
-def restart():
-    """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
-
-    global spike, sans, sans_picked_up
-    manager.field = Field()
-    spike = Spike()
-    sans = False
-    sans_picked_up = False
-    manager.Player1.restart_parameters(400, 800)
-    manager.Player2.restart_parameters(800, 800)
-
-
-def tick(dt, controls):
-    global objects, star, dtstar, sans, dtsans
-
-    if dtstar == FPS * 20:
-        objects[0] = StarPowerUp()
-        star = True
-        dtstar = -FPS * 10
-
-    if dtsans == FPS * 20:
-        objects[1] = Sans()
-        sans = True
-        dtsans = -FPS * 10
-    dt += 1
-    dtstar += 1
-    dtsans += 1
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.wall()
-    manager.Player2.wall()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.death()
-    manager.Player2.death()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.move()
-    manager.Player2.move()
-    collide(manager.Player1, manager.Player2)
-    if star:
-        objects[0].pickup(manager.Player1, dt)
-        objects[0].pickup(manager.Player2, dt)
-    if manager.Player1.invincible:
-        manager.Player1.star(dt)
-    if manager.Player2.invincible:
-        manager.Player2.star(dt)
-    if sans:
-        objects[1].pickup(manager.Player1, dt)
-        objects[1].pickup(manager.Player2, dt)
-    if manager.Player1.immovable:
-        manager.Player1.sans(dt)
-    if manager.Player2.immovable:
-        manager.Player2.sans(dt)
-    manager.Player1.death()
-    manager.Player2.death()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.wall()
-    manager.Player2.wall()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.newton(dt, [controls[0], controls[1]], [controls[2], controls[3]])
-    manager.Player2.newton(dt, [controls[2], controls[3]], [controls[0], controls[1]])
-    collide(manager.Player1, manager.Player2)
-    return manager.Player1, manager.Player2, spike, manager.field, dt, objects
 
 
 manager = Big_Manager()

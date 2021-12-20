@@ -1,5 +1,5 @@
 import keyboard
-from model import tick, Button, start, InputBox, screen, restart, manager
+from model import Button, InputBox, screen, manager
 from view import *
 from colors import BLACK, RED, BLUE, ORANGE
 from soundtrack import Volume_control
@@ -47,7 +47,7 @@ def controller():
             "Происходящее после окончания игры"
             control.game_over_control()
             volume_control.sounds_control(manager)
-            start()
+            manager.start()
 
         if manager.game_break:
             "Отвечает за происходящее между раундами"
@@ -69,18 +69,19 @@ class Control:
         p1x, p1y = control.init_operate_p1()
         p2x, p2y = control.init_operate_p2()
         controls = [p1x, p1y, p2x, p2y]
-        Player1, Player2, spike, field, manager.dt, objects = tick(manager.dt, controls)
+        Player1, Player2, spike, field, manager.dt, objects = manager.tick(controls)
         field_drawer.update(field, manager.dt)
         drawer.display_player(Player1)
         drawer.display_player(Player2)
         drawer.draw_score(Player1, Player2)
 
-        if type(objects[0]) != type(1):
+        if type(manager.objects[0]) != type(1):
             print(objects[0])
             if not objects[0].used:
                 pygame.draw.polygon(screen, objects[0].color, objects[0].drawdata)
-        pygame.draw.polygon(screen, [255, 255, 255],
-                            [[spike.x2, spike.y2], [spike.x3, spike.y3], [spike.x1, spike.y1]])
+        for i in manager.spikes:
+            pygame.draw.polygon(screen, [255, 255, 255],
+                            [[i.x2, i.y2], [i.x3, i.y3], [i.x1, i.y1]])
 
         if type(objects[1]) != type(1):
             if not objects[1].used:
@@ -91,8 +92,8 @@ class Control:
         pygame.display.update()
 
         "Переход к окончанию игры в зависимости от числа очков"
-        if not Player1.live or not Player2.live:
-            if not Player1.live:
+        if Player1.dead or Player2.dead:
+            if Player1.dead:
                 Player2.wins += 1
             else:
                 Player1.wins += 1
@@ -131,7 +132,7 @@ class Control:
                     manager.not_started = True
                     screen.fill(BLACK)
                     pygame.display.update()
-                    start()
+                    manager.start()
                 if button_exit.pressed(mouse_coords, button_exit.coords1, button_exit.coords3):
                     manager.finished = True
                 if button_options.pressed(mouse_coords, button_options.coords1, button_options.coords3):
@@ -342,7 +343,7 @@ class Control:
         buttons = [button_end, button_play_again]
         drawer.buttons_view(buttons)
         manager.not_started = True
-        start()
+        manager.start()
 
         "Обработка событий"
         for event in pygame.event.get():
@@ -363,7 +364,7 @@ class Control:
                     manager.not_started = True
                     screen.fill(BLACK)
                     pygame.display.update()
-                    start()
+                    manager.start()
             if event.type == pygame.MOUSEMOTION:
                 drawer.buttons_view(buttons)
 
@@ -385,13 +386,13 @@ class Control:
                 if button_next_round.pressed(mouse_coords, button_next_round.coords1, button_next_round.coords3):
                     manager.game_break = False
                     manager.play = True
-                    restart()
+                    manager.restart()
                     screen.fill(BLACK)
                     pygame.display.update()
                 if button_main_menu.pressed(mouse_coords, button_main_menu.coords1, button_main_menu.coords3):
                     manager.game_break = False
                     manager.stop = True
-                    restart()
+                    manager.restart()
                     screen.fill(BLACK)
                     pygame.display.update()
                     control.get_menu()
