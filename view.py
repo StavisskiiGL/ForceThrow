@@ -1,7 +1,7 @@
 import pygame
 import pygame.draw
 import math
-from colors import BLACK, WHITE, GREEN
+from colors import BLACK, WHITE
 
 FPS = 30
 
@@ -26,13 +26,20 @@ class Drawer:
                 pygame.draw.line(self.screen, WHITE, (x + r * math.cos(angle), y + r * math.sin(angle)),
                                  (x + r * math.sin(angle), y - r * math.cos(angle)), 4)
 
+    def display_player(self, player):
+        pygame.draw.circle(self.screen, player.color, (player.x, player.y), player.size)
 
-def display_player(screen, player):
-    pygame.draw.circle(screen, player.color, (player.x, player.y), player.size)
-
-
-def draw_score(screen, player1, player2):
-    input_surf = pygame.font.Font(None, 60)
-    input_text = input_surf.render(player1.name + ' ' + str(player1.wins) + '-' + str(player2.wins) + ' ' +
+    def draw_score(self, player1, player2):
+        input_surf = pygame.font.Font(None, 60)
+        input_text = input_surf.render(player1.name + ' ' + str(player1.wins) + '-' + str(player2.wins) + ' ' +
                                    player2.name, True, [255, 0, 0])
-    screen.blit(input_text, (150, 150))
+        self.screen.blit(input_text, (150, 150))
+
+    def buttons_view(self, buttons):
+        """Комбинация операций отображения кнопок и их окраски"""
+        mouse_coords = pygame.mouse.get_pos()
+        for button in buttons:
+            button.change_color(mouse_coords, button.coords1, button.coords3)
+            button.image_button(self.screen, button.coords1, button.coords2,
+                            button.coords3, button.coords4, button.text, button.color)
+        pygame.display.update()

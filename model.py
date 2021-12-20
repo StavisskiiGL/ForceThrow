@@ -1,8 +1,5 @@
 import math
 import random
-import pygame
-import keyboard
-
 import colors
 from colors import *
 
@@ -15,82 +12,6 @@ objects = [0, 0, 0]
 dtstar = 0
 dtsans = 0
 pygame.init()
-FONT = pygame.font.Font(None, 32)
-
-
-def start():
-    """Создание поля, шипов, игроков в начале игры"""
-
-    global spike
-    manager.field = Field()
-    spike = Spike()
-    manager.Player1 = Player(400, 800)
-    manager.Player2 = Player(800, 800)
-    manager.Player1.wins = 0
-    manager.Player2.wins = 0
-
-
-def restart():
-    """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
-
-    global spike, sans, sans_picked_up
-    manager.field = Field()
-    spike = Spike()
-    sans = False
-    sans_picked_up = False
-    manager.Player1.restart_parameters(400, 800)
-    manager.Player2.restart_parameters(800, 800)
-
-
-def tick(dt, controls):
-    global objects, star, dtstar, sans, dtsans
-
-    if dtstar == FPS * 20:
-        objects[0] = StarPowerUp()
-        star = True
-        dtstar = -FPS * 10
-
-    if dtsans == FPS * 20:
-        objects[1] = Sans()
-        sans = True
-        dtsans = -FPS * 10
-    dt += 1
-    dtstar += 1
-    dtsans += 1
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.wall()
-    manager.Player2.wall()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.death()
-    manager.Player2.death()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.move()
-    manager.Player2.move()
-    collide(manager.Player1, manager.Player2)
-    if star:
-        objects[0].pickup(manager.Player1, dt)
-        objects[0].pickup(manager.Player2, dt)
-    if manager.Player1.invincible:
-        manager.Player1.star(dt)
-    if manager.Player2.invincible:
-        manager.Player2.star(dt)
-    if sans:
-        objects[1].pickup(manager.Player1, dt)
-        objects[1].pickup(manager.Player2, dt)
-    if manager.Player1.immovable:
-        manager.Player1.sans(dt)
-    if manager.Player2.immovable:
-        manager.Player2.sans(dt)
-    manager.Player1.death()
-    manager.Player2.death()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.wall()
-    manager.Player2.wall()
-    collide(manager.Player1, manager.Player2)
-    manager.Player1.newton(dt, [controls[0], controls[1]], [controls[2], controls[3]])
-    manager.Player2.newton(dt, [controls[2], controls[3]], [controls[0], controls[1]])
-    collide(manager.Player1, manager.Player2)
-    return manager.Player1, manager.Player2, spike, manager.field, dt, objects
 
 
 class InputBox:
@@ -101,10 +22,10 @@ class InputBox:
         self.rect = pygame.Rect(x, y, w, h)
         self.color = COLOR_INACTIVE
         self.text = text
-        self.txt_surface = FONT.render(text, True, self.color)
+        self.txt_surface = manager.FONT.render(text, True, self.color)
         self.active = False
 
-    def handle_event(self, event, Player_number, input_type):
+    def handle_event(self, event, player_number, input_type):
         """Обработка событий, связанных с окном"""
         if event.type == pygame.MOUSEBUTTONDOWN:
             "Если игрок щёлкнул по окну"
@@ -120,14 +41,14 @@ class InputBox:
                 if event.key == pygame.K_RETURN:
                     "Присвоение игрокам введённых имён"
                     if input_type == 'Name':
-                        if Player_number == 1:
+                        if player_number == 1:
                             manager.Player1.get_a_name(self.text)
-                        elif Player_number == 2:
+                        elif player_number == 2:
                             manager.Player2.get_a_name(self.text)
                     elif input_type == 'Colour':
-                        if Player_number == 1:
+                        if player_number == 1:
                             manager.Player1.get_a_colour(self.text)
-                        elif Player_number == 2:
+                        elif player_number == 2:
                             manager.Player2.get_a_colour(self.text)
 
                     self.text = ''
@@ -139,7 +60,7 @@ class InputBox:
                 else:
                     self.text += event.unicode
                 "Обновление текста"
-                self.txt_surface = FONT.render(self.text, True, self.color)
+                self.txt_surface = manager.FONT.render(self.text, True, self.color)
 
     def update(self):
         """Удлиняет окно если текст слишком длинный"""
@@ -173,16 +94,11 @@ class Big_Manager:
         self.game_break = False
         self.game_break_counter = 0
         self.dt = 0
-        self.music = 'play'
-        self.activate_sound = False
-        self.music_volume = 0.5
         self.options = False
-        self.sounds_volume = 0.5
-        self.activ_sound = pygame.mixer.Sound('activatesound.wav')
-        self.field = 0
-        self.Player1 = 0
-        self.Player2 = 0
-        self.spikes = []
+        self.field = Field()
+        self.Player1 = Player(400, 800)
+        self.Player2 = Player(800, 800)
+        self.FONT = pygame.font.Font(None, 32)
 
 
 class Button:
@@ -210,22 +126,13 @@ class Button:
         else:
             self.color = GREEN
 
-    def image_button(screen, coords1, coords2, coords3, coords4, name, color):
+    def image_button(self, screen, coords1, coords2, coords3, coords4, name, color):
         """Отображение кнопки"""
         pygame.draw.polygon(screen, WHITE, [coords1, coords2, coords3, coords4], 20)
         pygame.draw.polygon(screen, color, [coords1, coords2, coords3, coords4])
         text_surf = pygame.font.Font(None, 60)
         button_text = text_surf.render(name, True, (0, 0, 0))
         screen.blit(button_text, coords1)
-
-    def buttons_view(buttons, screen):
-        """Комбинация операций отображения кнопок и их окраски"""
-        mouse_coords = pygame.mouse.get_pos()
-        for button in buttons:
-            button.change_color(mouse_coords, button.coords1, button.coords3)
-            Button.image_button(screen, button.coords1, button.coords2,
-                                button.coords3, button.coords4, button.text, button.color)
-        pygame.display.update()
 
 
 class StarPowerUp:
@@ -491,6 +398,7 @@ class Spike:
 
 
 def collide(player1, player2):
+
     if math.sqrt((player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2) <= player1.size + player2.size:
         if player1.immovable or player2.immovable:
             return
@@ -520,6 +428,81 @@ def collide(player1, player2):
         player1.vy = v1y_true
         player2.vx = v2x_true
         player2.vy = v2y_true
+
+
+def start():
+    """Создание поля, шипов, игроков в начале игры"""
+
+    global spike
+    manager.field = Field()
+    spike = Spike()
+    manager.Player1 = Player(400, 800)
+    manager.Player2 = Player(800, 800)
+    manager.Player1.wins = 0
+    manager.Player2.wins = 0
+
+
+def restart():
+    """Создание нового поля, новых шипов и откат к начальному состоянию игроков перед новым раундом"""
+
+    global spike, sans, sans_picked_up
+    manager.field = Field()
+    spike = Spike()
+    sans = False
+    sans_picked_up = False
+    manager.Player1.restart_parameters(400, 800)
+    manager.Player2.restart_parameters(800, 800)
+
+
+def tick(dt, controls):
+    global objects, star, dtstar, sans, dtsans
+
+    if dtstar == FPS * 20:
+        objects[0] = StarPowerUp()
+        star = True
+        dtstar = -FPS * 10
+
+    if dtsans == FPS * 20:
+        objects[1] = Sans()
+        sans = True
+        dtsans = -FPS * 10
+    dt += 1
+    dtstar += 1
+    dtsans += 1
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.wall()
+    manager.Player2.wall()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.death()
+    manager.Player2.death()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.move()
+    manager.Player2.move()
+    collide(manager.Player1, manager.Player2)
+    if star:
+        objects[0].pickup(manager.Player1, dt)
+        objects[0].pickup(manager.Player2, dt)
+    if manager.Player1.invincible:
+        manager.Player1.star(dt)
+    if manager.Player2.invincible:
+        manager.Player2.star(dt)
+    if sans:
+        objects[1].pickup(manager.Player1, dt)
+        objects[1].pickup(manager.Player2, dt)
+    if manager.Player1.immovable:
+        manager.Player1.sans(dt)
+    if manager.Player2.immovable:
+        manager.Player2.sans(dt)
+    manager.Player1.death()
+    manager.Player2.death()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.wall()
+    manager.Player2.wall()
+    collide(manager.Player1, manager.Player2)
+    manager.Player1.newton(dt, [controls[0], controls[1]], [controls[2], controls[3]])
+    manager.Player2.newton(dt, [controls[2], controls[3]], [controls[0], controls[1]])
+    collide(manager.Player1, manager.Player2)
+    return manager.Player1, manager.Player2, spike, manager.field, dt, objects
 
 
 manager = Big_Manager()
